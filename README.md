@@ -15,16 +15,22 @@ Activate the environment:
 source .venv/bin/activate
 ```
 
-Activate the environment:
+Install dependencies:
 
 ```
 pip3 install -r requirements.txt
 ```
 
-
+Calculate projections:
 
 ```
 python3 projection.py
+```
+
+Train models:
+
+```
+python3 trainer.py
 ```
 
 ## Files
