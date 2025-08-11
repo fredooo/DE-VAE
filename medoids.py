@@ -2,7 +2,7 @@ import torch
 from torch.utils.data import DataLoader
 import numpy as np
 
-def compute_medoids_from_loader(loader):
+def medoids_from_loader(loader):
     # Gather all points and labels from the loader
     all_points = []
     all_labels = []
