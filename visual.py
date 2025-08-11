@@ -1,6 +1,7 @@
 from matplotlib.patches import Ellipse
 import matplotlib.pyplot as plt
 import numpy as np
+from pathlib import Path
 import torch
 
 from data_loader import create_loaders_for_dataset, model_outputs
@@ -8,6 +9,33 @@ from trainer import set_seed
 from vae_models import load, VaeGaussianDiagonal, VaeGaussianFull, VaeGaussianIsotropic
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+def plot_projection_from_loader(data_loader, title, filename):
+    all_points_2d = []
+    all_labels = []
+
+    # Collect all batches
+    for _, points_2d, labels in data_loader:
+        all_points_2d.append(points_2d)
+        all_labels.append(labels)
+
+    # Concatenate everything into single tensors
+    all_points_2d = torch.cat(all_points_2d, dim=0).cpu()
+    all_labels = torch.cat(all_labels, dim=0).cpu()
+
+    x = all_points_2d[:, 0]
+    y = all_points_2d[:, 1]
+
+    plt.figure(figsize=(10, 8))
+    scatter = plt.scatter(x, y, c=all_labels, cmap='tab10', s=5, alpha=0.7)
+    plt.colorbar(scatter, ticks=range(10), label="Digit Label")
+    plt.title(title)
+    plt.xlabel("x")
+    plt.ylabel("y")
+    plt.tight_layout()
+    img_path = Path(filename)
+    img_path.parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(img_path)
 
 
 def plot_latent_2d(mu, label, size=5):
@@ -222,8 +250,9 @@ def plot_vae_decoded_umap_grid(ae_model):
         ax.imshow(decoded[idx], cmap='gray')
         ax.axis('off')
     plt.tight_layout()
-    plt.savefig("./images/" + ae_model.name + "-grid.png")
-    plt.show()
+    img_path = Path(f"./images/{ae_model.name}_grid.png")
+    img_path.parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(img_path)
 
 
 if __name__ == "__main__":

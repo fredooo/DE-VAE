@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import torch
-from torch.utils.data import DataLoader, Dataset, random_split
+from torch.utils.data import DataLoader, Dataset, random_split, Subset
 from torchvision import datasets, transforms
 
 
@@ -25,8 +25,8 @@ class ProjectedLabeledDataset(Dataset):
 
 def load_mnist():
     transform = transforms.ToTensor()
-    mnist_train = datasets.MNIST(root='./data', train=True, download=True, transform=transform)
-    mnist_test = datasets.MNIST(root='./data', train=False, download=True, transform=transform)
+    mnist_train = datasets.MNIST(root='./datasets', train=True, download=True, transform=transform)
+    mnist_test = datasets.MNIST(root='./datasets', train=False, download=True, transform=transform)
     vectors = torch.cat([mnist_train.data, mnist_test.data], dim=0).float().div(255).view(-1, 28*28)
     labels = torch.cat([mnist_train.targets, mnist_test.targets], dim=0)
     return vectors, labels
@@ -34,16 +34,25 @@ def load_mnist():
 
 def load_fashion_mnist():
     transform = transforms.ToTensor()
-    fashion_mnist_train = datasets.FashionMNIST(root='./data', train=True, download=True, transform=transform)
-    fashion_mnist_test = datasets.FashionMNIST(root='./data', train=False, download=True, transform=transform)
+    fashion_mnist_train = datasets.FashionMNIST(root='./datasets', train=True, download=True, transform=transform)
+    fashion_mnist_test = datasets.FashionMNIST(root='./datasets', train=False, download=True, transform=transform)
+    vectors = torch.cat([fashion_mnist_train.data, fashion_mnist_test.data], dim=0).float().div(255).view(-1, 28*28)
+    labels = torch.cat([fashion_mnist_train.targets, fashion_mnist_test.targets], dim=0)
+    return vectors, labels
+
+
+def load_kmnist():
+    transform = transforms.ToTensor()
+    fashion_mnist_train = datasets.KMNIST(root='./datasets', train=True, download=True, transform=transform)
+    fashion_mnist_test = datasets.KMNIST(root='./datasets', train=False, download=True, transform=transform)
     vectors = torch.cat([fashion_mnist_train.data, fashion_mnist_test.data], dim=0).float().div(255).view(-1, 28*28)
     labels = torch.cat([fashion_mnist_train.targets, fashion_mnist_test.targets], dim=0)
     return vectors, labels
 
 
 def load_har():
-    train = pd.read_csv('./data/HAR/train.csv')
-    test = pd.read_csv('./data/HAR/test.csv')
+    train = pd.read_csv('./datasets/HAR/train.csv')
+    test = pd.read_csv('./datasets/HAR/test.csv')
     data = pd.concat([train, test], ignore_index=True)
     labels = data.iloc[:, -1:]
     labels = labels.to_numpy().flatten()
@@ -66,7 +75,7 @@ def create_data_loaders(dataset, points_2d, labels, batch_size=64):
     test_size = int(0.1 * dataset_size)
     train_size = dataset_size - val_size - test_size
 
-    full_indices = list(range(dataset_size))
+    full_indices = Subset(Dataset(), list(range(dataset_size)))
     train_indices, val_test_indices = random_split(full_indices, [train_size, val_size + test_size])
     val_indices, test_indices = random_split(val_test_indices, [val_size, test_size])
 
