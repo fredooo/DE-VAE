@@ -95,22 +95,27 @@ def create_loaders_for_dataset(dataset_name):
         vectors, _ = load_mnist()
     elif dataset_name == "fmnist":
         vectors, _ = load_fashion_mnist()
+    elif dataset_name == "kmnist":
+        vectors, _ = load_kmnist()
     elif dataset_name == "har":
         vectors, _ = load_har()
     else:
         raise ValueError("Unrecognized model type in filename")
-    points_2d, labels = load_csv_to_tensors(f"./{dataset_name}_umap.csv")
+    points_2d, labels = load_csv_to_tensors(f"./preprocessed/{dataset_name}/umap.csv")
     return create_data_loaders(vectors, points_2d, labels)
 
+
 def model_outputs(model, loader):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.to(device)
+    model.eval()
+
     vectors = []
     labels = []
     points = []
     recon_out = []
     mu_out = []
     logvar_out = []
-
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     with torch.no_grad():
         for v, p, l in loader:

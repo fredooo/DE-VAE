@@ -1,8 +1,10 @@
+import gc
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from pathlib import Path
-from sklearn.manifold import LocallyLinearEmbedding, MDS, TSNE
+from sklearn.decomposition import PCA
+from sklearn.manifold import Isomap, LocallyLinearEmbedding, MDS, TSNE
 import torch
 import umap
 
@@ -13,6 +15,7 @@ projection_seed = 777
 
 
 def project_data(vectors, labels, output_prefix, method: str = "umap"):
+    print("Calculating", method.upper())
     model = None
     embedding = None
     if method == "umap":
@@ -24,8 +27,14 @@ def project_data(vectors, labels, output_prefix, method: str = "umap"):
     elif method == "mds":
         model = MDS(n_components=2, random_state=projection_seed, n_jobs=-1)
         embedding = model.fit_transform(vectors)
+    elif method == "pca":
+        model = PCA(n_components=2)
+        embedding = model.fit_transform(vectors)
+    elif method == "isomap":
+        model = Isomap(n_components=2, n_neighbors=15)
+        embedding = model.fit_transform(vectors)
     else:
-        model = LocallyLinearEmbedding(n_components=2, random_state=projection_seed)
+        model = LocallyLinearEmbedding(n_components=2, n_neighbors=15, random_state=projection_seed)
         embedding = model.fit_transform(vectors)
 
     # Save coordinates and labels to CSV
@@ -85,7 +94,10 @@ def process_har():
     print("Processing HAR")
     vectors, labels = load_har()
     output_prefix = "har"
+    project_data(vectors, labels, output_prefix, method="isomap")
+    project_data(vectors, labels, output_prefix, method="mds")
     project_data(vectors, labels, output_prefix, method="lle")
+    project_data(vectors, labels, output_prefix, method="pca")
     project_data(vectors, labels, output_prefix, method="tsne")
     project_data(vectors, labels, output_prefix, method="umap")
 
@@ -95,6 +107,7 @@ def process_mnist():
     vectors, labels = load_mnist()
     output_prefix = "mnist"
     project_data(vectors, labels, output_prefix, method="lle")
+    project_data(vectors, labels, output_prefix, method="pca")
     project_data(vectors, labels, output_prefix, method="tsne")
     umap_model = project_data(vectors, labels, output_prefix, method="umap")
     sample_umap_grid_and_inverse(umap_model, output_prefix, grid_size=7)
@@ -105,6 +118,7 @@ def process_fashion_mnist():
     vectors, labels = load_fashion_mnist()
     output_prefix = "fmnist"
     project_data(vectors, labels, output_prefix, method="lle")
+    project_data(vectors, labels, output_prefix, method="pca")
     project_data(vectors, labels, output_prefix, method="tsne")
     umap_model = project_data(vectors, labels, output_prefix, method="umap")
     sample_umap_grid_and_inverse(umap_model, output_prefix, grid_size=7)
@@ -115,6 +129,7 @@ def process_kmnist():
     vectors, labels = load_kmnist()
     output_prefix = "kmnist"
     project_data(vectors, labels, output_prefix, method="lle")
+    project_data(vectors, labels, output_prefix, method="pca")
     project_data(vectors, labels, output_prefix, method="tsne")
     umap_model = project_data(vectors, labels, output_prefix, method="umap")
     sample_umap_grid_and_inverse(umap_model, output_prefix, grid_size=7)
@@ -122,6 +137,11 @@ def process_kmnist():
 
 if __name__ == "__main__":
     process_har()
+    print(f"GC cleared {gc.collect()} objects")
     process_mnist()
+    print(f"GC cleared {gc.collect()} objects")
     process_fashion_mnist()
+    print(f"GC cleared {gc.collect()} objects")
     process_kmnist()
+    print(f"GC cleared {gc.collect()} objects")
+    print("Done.")

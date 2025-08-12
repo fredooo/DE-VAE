@@ -1,6 +1,26 @@
-# MNIST and FashionMNIST data
-/data/MNIST
-/data/FashionMNIST
+# MNIST, FashionMNIST, KMNIST data
+datasets/MNIST
+datasets/FashionMNIST
+datasets/KMNIST
+
+# Trained models
+models/*.pt
+
+# Any images
+images/**/*.jpg
+images/**/*.pdf
+images/**/*.png
+
+preprocessed/**/*.csv
+preprocessed/**/*.npy
+
+# Training records
+records/*.txt
+records/*.csv
+
+# Archives
+*.tar.gz
+*.zip
 
 #
 # GitHub Pyhton template
