@@ -1,5 +1,6 @@
-# DE-VAE
-DE-VAE: Revealing Uncertainty in Parametric and Inverse Projections with Variational Autoencoders using Differential Entropy
+# DE-VAE: Revealing Uncertainty in Parametric and Inverse Projections with Variational Autoencoders using Differential Entropy
+
+**Paper:** TODO
 
 ## Run
 
@@ -24,7 +25,7 @@ pip3 install -r requirements.txt
 Calculate projections:
 
 ```
-python3 projection.py
+python3 projections.py
 ```
 
 Train models:
@@ -33,14 +34,19 @@ Train models:
 python3 trainer.py
 ```
 
+Visually explore results:
+
+```
+python3 visual.py
+```
+
 ## Files
 
 | File Name           | Description                                                                                  |
 |---------------------|----------------------------------------------------------------------------------------------|
-| `data_loader.py`    | Handles loading and preprocessing of datasets such as MNIST, FashionMNIST, and HAR.          |
-| `medoids.py`     | Computes the medoid (central point) of a set of vectors.                                     |
+| `data_loader.py`    | Handles loading and preprocessing of datasets such as MNIST, FashionMNIST, KMNIST, and HAR.  |
 | `loss_functions.py` | Implements various loss functions used in training VAE/AE models.                            |
-| `projection.py`     | Projects high-dimensional data into lower dimensions, possibly using UMAP, etc.              |
+| `projections.py`    | Projects high-dimensional data into lower dimensions, using UMAP, t-SNE, and LLE             |
 | `trainer.py`        | Contains the training loop and utilities for training VAE/AE models.                         |
 | `vae_models.py`     | Defines the architectures for VAE and AE models, including different variants.               |
-| `visual.py`         | Provides additional visualization utilities.                                                 |
+| `visual.py`         | Provides methods to viusally expore the resutsl and additional utlities.                     |

@@ -1,3 +1,4 @@
+import argparse
 from matplotlib.patches import Ellipse
 import matplotlib.pyplot as plt
 import numpy as np
@@ -8,7 +9,47 @@ from data_loader import create_loaders_for_dataset, model_outputs
 from trainer import set_seed
 from vae_models import load, VaeGaussianDiagonal, VaeGaussianFull, VaeGaussianIsotropic
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+def sample_classes(labels, num_points_per_label: int = 3):
+    unique_labels = labels.unique()
+    selected_indices = []
+    for lbl in unique_labels:
+        label_mask = (labels == lbl)
+        idx = (label_mask).nonzero(as_tuple=True)[0]
+        if len(idx) >= num_points_per_label:
+            selected = idx[:num_points_per_label]
+        else:
+            selected = idx
+        selected_indices.append(selected)
+    return torch.cat(selected_indices)
+
+
+def calculate_medoids(points, labels):
+    medoid_indices = []
+    unique_labels = torch.unique(labels)
+    
+    # For each label, compute medoid
+    for label in unique_labels:
+        label_mask = (labels == label)
+        points_of_label = points[label_mask]
+        
+        # Compute pairwise distance matrix (Euclidean)
+        dist_matrix = torch.cdist(points_of_label, points_of_label, p=2)
+        
+        # Sum distances for each point
+        sum_distances = dist_matrix.sum(dim=1)
+        
+        # Get index of the point with minimal sum distance within the label subset
+        medoid_idx_within_label = torch.argmin(sum_distances)
+        
+        # Get the original index of the medoid in the overall dataset
+        original_idx = (label_mask).nonzero(as_tuple=True)[0][medoid_idx_within_label]
+        
+        # Append the original index to the list
+        medoid_indices.append(original_idx.item())
+    
+    return medoid_indices
+
 
 def plot_projection_from_loader(data_loader, title, filename):
     all_points_2d = []
@@ -33,43 +74,19 @@ def plot_projection_from_loader(data_loader, title, filename):
     plt.xlabel("x")
     plt.ylabel("y")
     plt.tight_layout()
+
     img_path = Path(filename)
     img_path.parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(img_path)
+    #plt.show()
 
 
 def plot_latent_2d(mu, label, size=5):
     sizes = torch.ones(mu.size(0)) * size
-    scatter = plt.scatter(mu[:, 0], mu[:, 1], c=label, s=sizes, cmap='tab10', alpha=0.2)
+    plt.scatter(mu[:, 0], mu[:, 1], c=label, s=sizes, cmap='tab10', alpha=0.2)
 
 
-def plot_point_cloud(mu, std, n_samples=1000, color="blue"):
-    eps = torch.randn(n_samples, 2)
-    samples = mu + std * eps
-    plt.scatter(samples[:, 0], samples[:, 1], s=0.5, c=color, alpha=0.1)
-
-
-def draw_ellipses(mu, widths, heights, angles, labels, alpha=0.1, linewidth=0.5, cmap='tab10', ax=None):
-    if ax is None:
-        ax = plt.gca()
-    colormap = plt.colormaps.get_cmap(cmap)
-
-    for i in range(len(mu)):
-        color = colormap(labels[i] % 10)
-        ellipse = Ellipse(
-            xy=mu[i],
-            width=widths[i],
-            height=heights[i],
-            angle=angles[i],
-            facecolor=color,
-            edgecolor='none',
-            alpha=alpha,
-            linewidth=linewidth
-        )
-        ax.add_patch(ellipse)
-
-
-def draw_ellipses_halo(mu, widths, heights, angles, labels, alpha=1, linewidth=2, ax=None):
+def draw_ellipses_halo(mu, widths, heights, angles, alpha: float = 1.0, linewidth: float = 2, ax=None):
     if ax is None:
         ax = plt.gca()
 
@@ -117,22 +134,22 @@ def draw_ellipses_halo(mu, widths, heights, angles, labels, alpha=1, linewidth=2
         ax.plot(mu[i][0], mu[i][1], 'ko', markersize=1)
 
 
-def draw_std_ellipses_filled(mu, std, labels, scale=1.0, **kwargs):
+def draw_std_ellipses_filled(mu, std, scale=1.0):
     std = std.numpy()
     widths = heights = [scale * s for s in std]
     angles = [0.0] * len(std)
-    draw_ellipses_halo(mu, widths, heights, angles, labels, **kwargs)
+    draw_ellipses_halo(mu, widths, heights, angles)
 
 
-def draw_diag_ellipses_filled(mu, logvar, labels, scale=1.0, **kwargs):
+def draw_diag_ellipses_filled(mu, logvar, scale=1.0):
     std = torch.exp(0.5 * logvar).numpy()
     widths = [scale * s[0] for s in std]
     heights = [scale * s[1] for s in std]
     angles = [0.0] * len(std)  # Axis-aligned
-    draw_ellipses_halo(mu, widths, heights, angles, labels, **kwargs)
+    draw_ellipses_halo(mu, widths, heights, angles)
 
 
-def draw_cov_ellipses_filled(mu, L, labels, scale=1.0, **kwargs):
+def draw_cov_ellipses_filled(mu, L, scale=1.0):
     widths, heights, angles = [], [], []
 
     for i in range(len(mu)):
@@ -146,12 +163,12 @@ def draw_cov_ellipses_filled(mu, L, labels, scale=1.0, **kwargs):
         heights.append(height)
         angles.append(angle)
 
-    draw_ellipses_halo(mu, widths, heights, angles, labels, **kwargs)
+    draw_ellipses_halo(mu, widths, heights, angles)
 
 
-def main(
-        model_path="./models/vae-diag-har-p5.00-e0.00100-s8.pt"
-):
+def main(model_path: str):
+    print(f"Using model at: {model_path}")
+
     set_seed(777)
     # Load model and data
     model = load(model_path)
@@ -159,38 +176,24 @@ def main(
 
     _, _, test_loader = create_loaders_for_dataset(model.dataset)
 
-    vectors, _, labels, recon_out, mu_out, logvar_out = model_outputs(model, test_loader)
+    _, points, labels, _, mu_out, logvar_out = model_outputs(model, test_loader)
 
-    # Get unique labels and prepare mask
-    num_points_per_label = 3
-    unique_labels = labels.unique()
-    selected_indices = []
-
-    for lbl in unique_labels:
-        idx = (labels == lbl).nonzero(as_tuple=True)[0]
-        if len(idx) >= num_points_per_label:
-            selected = idx[:num_points_per_label]
-        else:
-            selected = idx  # take fewer if not enough
-        selected_indices.append(selected)
-
-    indices = torch.cat(selected_indices)
-
+    indices = calculate_medoids(points, labels)
+    
     mu_plot = mu_out[indices]
     logvar_plot = logvar_out[indices]
-    label_plot = labels[indices]
 
     plt.figure(figsize=(10, 8))
 
     plot_latent_2d(mu_out, labels)
 
     if isinstance(model, VaeGaussianFull):
-        draw_cov_ellipses_filled(mu_plot, logvar_plot, label_plot, scale=1.0)
+        draw_cov_ellipses_filled(mu_plot, logvar_plot, scale=1.0)
     elif isinstance(model, VaeGaussianDiagonal):
-        draw_diag_ellipses_filled(mu_plot, logvar_plot, label_plot, scale=1.0)
+        draw_diag_ellipses_filled(mu_plot, logvar_plot, scale=1.0)
     elif isinstance(model, VaeGaussianIsotropic):
         std_plot = torch.exp(0.5 * logvar_plot[:, 0])
-        draw_std_ellipses_filled(mu_plot, std_plot, label_plot, scale=1.0)
+        draw_std_ellipses_filled(mu_plot, std_plot, scale=1.0)
 
     plt.axis('square')
 
@@ -199,39 +202,24 @@ def main(
     plt.title("Latent Space")
 
     plt.tight_layout()
-    plt.savefig("./images/" + model.name + "-latent.pdf", format="pdf")
+    pdf_path = Path(f"./images/latent/{model.name}.pdf")
+    pdf_path.parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(pdf_path, format="pdf")
     plt.show()
 
     if model.dataset != "har":
-        show_reconstructions(vectors, recon_out)
-        plot_vae_decoded_umap_grid(model)
+        plot_decoded_umap_grid(model)
 
 
-def show_reconstructions(values, recon_out, num_images=10):
-    assert values.shape == recon_out.shape
-    assert values.shape[0] >= num_images
+def plot_decoded_umap_grid(ae_model):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    ae_model.to(device)
+    ae_model.eval()
 
-    # Randomly sample 10 consistent indices
-    indices = torch.randperm(values.shape[0])[:num_images]
-    originals = values[indices].view(-1, 1, 28, 28)
-    reconstructions = recon_out[indices].view(-1, 1, 28, 28)
-
-    fig, axes = plt.subplots(2, num_images, figsize=(num_images * 1.2, 2.5))
-    for i in range(num_images):
-        axes[0, i].imshow(originals[i, 0], cmap='gray')
-        axes[1, i].imshow(reconstructions[i, 0], cmap='gray')
-        axes[0, i].axis('off')
-        axes[1, i].axis('off')
-    axes[0, 0].set_ylabel('Original', fontsize=12)
-    axes[1, 0].set_ylabel('Reconstruction', fontsize=12)
-    plt.tight_layout()
-    plt.show()
-
-
-def plot_vae_decoded_umap_grid(ae_model):
-    coords = np.load(f"./{ae_model.dataset}_grid_points.npy")
+    coords = np.load(f"./preprocessed/{ae_model.dataset}/umap_grid_points.npy")
     n_points = coords.shape[0]
     grid_size = int(np.sqrt(n_points))
+
     assert grid_size * grid_size == n_points, "Grid points must form a square grid."
 
     # Decode
@@ -250,10 +238,25 @@ def plot_vae_decoded_umap_grid(ae_model):
         ax.imshow(decoded[idx], cmap='gray')
         ax.axis('off')
     plt.tight_layout()
-    img_path = Path(f"./images/{ae_model.name}_grid.png")
-    img_path.parent.mkdir(parents=True, exist_ok=True)
-    plt.savefig(img_path)
+
+    pdf_path = Path(f"./images/grid/{ae_model.name}.pdf")
+    pdf_path.parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(pdf_path)
+    plt.show()
 
 
 if __name__ == "__main__":
-    main()
+    # Set up argument parser
+    parser = argparse.ArgumentParser(description="Load a model from a specified path.")
+    parser.add_argument(
+        "--model", 
+        type=str, 
+        required=True,
+        help="Path to the model file."
+    )
+
+    # Parse arguments
+    args = parser.parse_args()
+
+    # Call main with the parsed argument
+    main(model_path=args.model)

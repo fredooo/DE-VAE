@@ -16,6 +16,7 @@ lr = 1e-3
 # Determine CUDA device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+
 def set_seed(seed=777):
     torch.manual_seed(seed)
     np.random.seed(seed)
@@ -92,14 +93,14 @@ class ValidationSaveStop:
             return ""
 
 
-def train(model_type, dataset, l_proj, l_ent, seed):
+def train(model_type: str, dataset: str, projection: str, l_proj: float, l_ent: float, seed: int):
     set_seed(seed)
 
     # Load dataset
     train_loader, val_loader, test_loader = create_loaders_for_dataset(dataset)
 
     # Initialize model
-    model = create_model_from_params(model_type, dataset, l_proj, l_ent, seed).to(device)
+    model = create_model_from_params(model_type, dataset, projection, l_proj, l_ent, seed).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
     # Training loop
@@ -137,26 +138,65 @@ def train(model_type, dataset, l_proj, l_ent, seed):
     log_print(model, test)
 
 
-if __name__ == "__main__":
+def run_full():
     models = ["ae-regm", "vae-full", "vae-diag", "vae-isot"]
     seeds = [777, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+    datasets = ["mnist"]
+    projections = ["umap"]
     l_proj = 20.0
     l_ent = 5.0
     for m in models:
-        for s in seeds:
-            train(m, "mnist", l_proj, l_ent, s)
-            print(f"GC cleared {gc.collect()} objects")
+        for d in datasets:
+            for p in projections:
+                for s in seeds:
+                    train(m, d, p, l_proj, l_ent, s)
+                    print(f"GC cleared {gc.collect()} objects")
 
+    datasets = ["fmnist"]
+    projections = ["umap"]
     l_proj = 20.0
     l_ent = 4.0
     for m in models:
-        for s in seeds:
-            train(m, "fmnist", l_proj, l_ent, s)
-            print(f"GC cleared {gc.collect()} objects")
+        for d in datasets:
+            for p in projections:
+                for s in seeds:
+                    train(m, d, p, l_proj, l_ent, s)
+                    print(f"GC cleared {gc.collect()} objects")
 
+    datasets = ["kmnist"]
+    projections = ["umap"]
+    l_proj = 20.0
+    l_ent = 1.0
+    for m in models:
+        for d in datasets:
+            for p in projections:
+                for s in seeds:
+                    train(m, d, p, l_proj, l_ent, s)
+                    print(f"GC cleared {gc.collect()} objects")
+
+    datasets = ["har"]
+    projections = ["umap"]
     l_proj = 5.0
     l_ent = 0.001
     for m in models:
-        for s in seeds:
-            train(m, "har", l_proj, l_ent, s)
-            print(f"GC cleared {gc.collect()} objects")
+        for d in datasets:
+            for p in projections:
+                for s in seeds:
+                    train(m, d, p, l_proj, l_ent, s)
+                    print(f"GC cleared {gc.collect()} objects")
+
+    datasets = ["har", "mnist", "fmnist", "kmnist"]
+    projections = ["pca", "tsne"]
+    l_proj = 20.0
+    l_ent = 1.0
+    for m in models:
+        for d in datasets:
+            for p in projections:
+                for s in seeds:
+                    train(m, d, p, l_proj, l_ent, s)
+                    print(f"GC cleared {gc.collect()} objects")
+
+
+if __name__ == "__main__":
+    run_full()
