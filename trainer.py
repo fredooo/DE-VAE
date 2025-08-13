@@ -1,5 +1,5 @@
+import argparse
 import gc
-
 import numpy as np
 import pandas as pd
 import random
@@ -199,4 +199,26 @@ def run_full():
 
 
 if __name__ == "__main__":
-    run_full()
+    parser = argparse.ArgumentParser(description="Generate and print evaluation tables.")
+
+    parser.add_argument("--model", help="model name key (e.g., 'vae-full')")
+    parser.add_argument("--hd", help="high-dimensional data as CSV file")
+    parser.add_argument("--ld", help="2D projection data as CSV file")
+    parser.add_argument("--l-proj", type=float, default=1.0, help="projection loss weight")
+    parser.add_argument("--l-ent", type=float, default=1.0, help="entropy loss weight")
+    parser.add_argument("--seed", type=int, default=777, help="random seed for reproducibility")
+    parser.add_argument("--run-full", action="store_true", help="Run training of all models of the evaluation")
+    args = parser.parse_args()
+
+    if args.all_latex:
+        run_full()
+
+    elif args.model and args.hd and args.ld:
+        # TODO: train(args.model, args.hd, args.ld, args.l_proj, args.l_ent, args.seed)
+        pass
+
+    else:
+        print("Warning - No output. You must provide either:")
+        print("1. All of --model, --hd, and --ld")
+        print("OR")
+        print("2. Just --run-full")
