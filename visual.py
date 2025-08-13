@@ -247,12 +247,12 @@ def plot_decoded_umap_grid(ae_model):
 
 if __name__ == "__main__":
     # Set up argument parser
-    parser = argparse.ArgumentParser(description="Load a model from a specified path.")
+    parser = argparse.ArgumentParser(description="Load a model from a specified path and show the latent space visualization.")
     parser.add_argument(
         "--model", 
         type=str, 
         required=True,
-        help="Path to the model file."
+        help="path to the model file."
     )
 
     # Parse arguments

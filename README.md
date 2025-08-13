@@ -62,7 +62,29 @@ Explore model outputs and projections visually, e.g., with:
 
 ```bash
 # usage: visual.py [-h] --model MODEL
+#
+# Load a model from a specified path and show the latent space visualization.
+#
+# options:
+#   -h, --help     show this help message and exit
+#   --model MODEL  Path to the model file.
 python3 visual.py --model ./models/vae-full-fmnist-umap-p20.00-e4.00000-s0.pt
+```
+
+### 4. Show Quantitative Results
+```bash
+# usage: create_tables.py [-h] [--model MODEL] [--dataset DATASET] [--projection PROJECTION] [--all-latex]
+#
+# Generate and print evaluation tables.
+#
+# options:
+#  -h, --help            show this help message and exit
+#  --model MODEL         model name key (e.g., 'vae-full')
+#  --dataset DATASET     dataset name key (e.g., 'mnist')
+#  --projection PROJECTION
+#                        projection name key (e.g., 'umap')
+#  --all-latex           Run full evaluation to generate all LaTeX tables
+python3 create_tables.py --model vae-full --dataset mnist --projection umap
 ```
 
 ---
