@@ -11,15 +11,15 @@
 ## Key Features
 
 * Learns a parametric projection that maps high-dimensional data to a probabilistic latent space, enabling explicit modeling of uncertainty.
-* Represents each data point as a full, diagomal, or isotropic Gaussian distribution, capturing uncertainty in the projection.
-* Provides uncertainty-aware visualization of the projection, i.e., latent space, showing confidence around points.
+* Represents each data point as a full, diagomal, or isotropic Gaussian distribution.
+* Provides an uncertainty-aware visualization of the projection, i.e., latent space, showing confidence around points.
 * Includes an inverse model to reconstruct original data from projected points.
 * Optimizes multiple losses to ensure accurate reconstruction, projection alignment, and interpretable uncertainty.
 
 
 ![Overview][1]
 
-In this example, the encoder of a DE-VAE learns a parametric projection $P$ of MNIST, mapping each data point $x_i$ to a full Gaussian $\mathcal{N}(\mu, \Sigma)$, modeling the uncertainty of a UMAP projection. The decoder learns an inverse projection $P^{-1}$, taking $y_k$, and reconstructing a plausible sample $\hat{x}_k$. $P$ enables uncertainty-aware visualization of the latent space. DE-VAEs optimize the losses: $L_{\text{recon}}$, ensuring reconstruction; $L_{\text{proj}}$, aligns $\mu$ with points of the projection; $L_{\text{ent}}$ maximizes the variance of $\Sigma$. To show learned Gaussian distributions, we depict the 1st, 2nd, and 3rd standard deviations as ellipses around two randomly sampled points per class.
+In this example, the encoder of a DE-VAE learns a parametric projection $P$ of MNIST, mapping each data point $x_i$ to a full Gaussian $\mathcal{N}(\mu, \Sigma)$, modeling the uncertainty of a UMAP projection. The decoder learns an inverse projection $P^{-1}$, taking $y_k$, and reconstructing a plausible sample $x̂_k$. $P$ enables uncertainty-aware visualization of the latent space. DE-VAEs optimize the losses: $L_{\text{recon}}$, ensuring reconstruction; $L_{\text{proj}}$, aligns $\mu$ with points of the projection; $L_{\text{ent}}$ maximizes the variance of $\Sigma$. To show learned Gaussian distributions, we depict the 1st, 2nd, and 3rd standard deviations as ellipses around two randomly sampled points per class.
 
 ## Requirements
 
@@ -44,7 +44,7 @@ pip3 install -r requirements.txt
 sh ./setup.sh
 ```
 
-### 2. Train Models (Optional - May take some time)
+#### 1.1 Optional: Train Models (may take some time)
 
 If you'd like to train the models yourself instead of using the pretrained ones:
 
@@ -53,10 +53,10 @@ If you'd like to train the models yourself instead of using the pretrained ones:
 python3 projections.py
 
 # Train VAE/AE models
-python3 trainer.py
+python3 trainer.py --run-full
 ```
 
-### 3. Visualize Results
+### 2. Visualize Results
 
 Explore model outputs and projections visually, e.g., with:
 
@@ -71,7 +71,7 @@ Explore model outputs and projections visually, e.g., with:
 python3 visual.py --model ./models/vae-full-fmnist-umap-p20.00-e4.00000-s0.pt
 ```
 
-### 4. Show Quantitative Results
+### 3. Show Quantitative Results
 ```bash
 # usage: create_tables.py [-h] [--model MODEL] [--dataset DATASET] [--projection PROJECTION] [--all-latex]
 #
@@ -93,7 +93,7 @@ python3 create_tables.py --model vae-full --dataset mnist --projection umap
 
 | File Name           | Description                                                                              |
 | ------------------- | ---------------------------------------------------------------------------------------- |
-| `create_tables.py`  | Generates LaTeX tables summarizing model results for each dataset and projection method. |
+| `create_tables.py`  | Generates tables summarizing model results for each dataset and projection method.       |
 | `data_loader.py`    | Loads and preprocesses datasets: MNIST, FashionMNIST, KMNIST, and HAR.                   |
 | `loss_functions.py` | Implements loss functions used during training of VAE/AE models.                         |
 | `projections.py`    | Projects high-dimensional data to 2D using UMAP, t-SNE, and LLE.                         |
