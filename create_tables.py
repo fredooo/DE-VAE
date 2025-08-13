@@ -96,58 +96,68 @@ def summarise(df: pd.DataFrame):
     return row
 
 
+def create_single_table(model, dataset, projection):
+    # gather one DataFrame with 10 rows (one per seed)
+    rows = {}
+    for seed in SEEDS:
+        pattern = f"{model}-{dataset}-p*-e*-s{seed}.txt"
+        matches = glob.glob(os.path.join(RECORDS_DIR, pattern))
+        if not matches:
+            continue  # file missing - skip seed
+        rows[seed] = parse_file(matches[0])
+
+    if not rows:
+        # No files for this (dataset, model); skip silently
+        return None
+
+    df = pd.DataFrame.from_dict(rows, orient="index")
+    
+    # add aggregation row
+    row = summarise(df)
+    df.loc[len(df)] = row
+
+    df["Seed"] = df.index.astype(str)
+    df.loc[len(df) - 1, "Seed"] = "$\\mu \\pm \\sigma$"
+
+    df = df[["Seed", "TrainingTime", "Recon", "Proj", "Ent", "Epochs"]]
+
+    df.rename(columns={
+        "TrainingTime": "Training Time (s)",
+        "Recon": "$\\altmathcal{L}_{\\text{recon}}$",
+        "Proj": "$\\altmathcal{L}_{\\text{proj}}$",
+        "Ent": "$\\altmathcal{L}_{\\text{ent}}$"
+    }, inplace=True)
+    
+    # pretty LaTeX
+    latex_table = df.to_latex(
+        index=False,
+        float_format="%.3f",
+        na_rep="---",
+        escape=False,
+        column_format="lrrrrr",
+        caption=f"{MODEL_NAMES[model]} on {DATASET_NAMES[dataset]} with {PROJECTION_NAMES[projection]}: Test metrics and training time (10 seeds)",
+        label=f"tab:{model}-{dataset}-{projection}",
+        position="!h"
+    )
+
+    latex_table = latex_table.replace(
+        "\\begin{table}[!h]",
+        "\\begin{table}[!h]\n\\centering"
+    ).replace(
+        "\n$\\mu \\pm \\sigma$",
+        "\n\\midrule\n$\\mu \\pm \\sigma$"
+    )
+
+    return latex_table
+
+
 def run_full():
     for dataset in DATASETS:
         for projection in PROJECTIONS:
             print("\\subsubsection{" + DATASET_NAMES[dataset] + " with " + PROJECTION_NAMES[projection] + "}")
             for model in MODELS:
-                # gather one DataFrame with 10 rows (one per seed)
-                rows = {}
-                for seed in SEEDS:
-                    pattern = f"{model}-{dataset}-p*-e*-s{seed}.txt"
-                    matches = glob.glob(os.path.join(RECORDS_DIR, pattern))
-                    if not matches:
-                        continue  # file missing - skip seed
-                    rows[seed] = parse_file(matches[0])
-
-                if not rows:
-                    # No files for this (dataset, model); skip silently
-                    continue
-
-                df = pd.DataFrame.from_dict(rows, orient="index")
-                
-                # add aggregation row
-                row = summarise(df)
-                df.loc[len(df)] = row
-
-                df["Seed"] = df.index.astype(str)
-
-                df.loc[10, "Seed"] = "$\\mu \\pm \\sigma$"
-
-                df = df[["Seed", "TrainingTime", "Recon", "Proj", "Ent", "Epochs"]]
-
-                df.rename(columns={
-                        "TrainingTime": "Training Time (s)",
-                        "Recon": "$\\altmathcal{L}_{\\text{recon}}$",
-                        "Proj": "$\\altmathcal{L}_{\\text{proj}}$",
-                        "Ent": "$\\altmathcal{L}_{\\text{ent}}$"}, inplace=True)
-                
-                # pretty LaTeX
-                latex_table = df.to_latex(
-                    index=False,
-                    float_format="%.3f",
-                    na_rep="---",
-                    escape=False,
-                    column_format="lrrrrrr",
-                    caption=f"{MODEL_NAMES[model]} on {DATASET_NAMES[dataset]} with {PROJECTION_NAMES[projection]}: Test metrics and training time (10 seeds)",
-                    label=f"tab:{model}-{dataset}-{projection}",
-                    position="!h"
-                )
-
-                latex_table = latex_table.replace("\\begin{table}[!h]","\\begin{table}[!h]\n\\centering").replace("\n$\\mu \\pm \\sigma$", "\n\\midrule\n$\\mu \\pm \\sigma$")
-
+                latex_table = create_single_table(model, dataset, projection)
                 print(latex_table)
-
             print("\\clearpage\n")
 
 

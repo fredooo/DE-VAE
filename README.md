@@ -1,12 +1,30 @@
 # **DE-VAE: Revealing Uncertainty in Parametric and Inverse Projections with Variational Autoencoders using Differential Entropy**
 
-**Paper:** *To be added*
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/)
+[![Uses: venv](https://img.shields.io/badge/Environment-venv-blue)](https://docs.python.org/3/library/venv.html)
+[![Paper](https://img.shields.io/badge/paper-arXiv-red)](https://arxiv.org/abs/xxxx.xxxxx)
+[![OSF Project](https://img.shields.io/badge/OSF-View%20Project-lightgrey)](https://osf.io/zr6xf/)
 
----
+📄 **Paper:** *To be added*
+
+## Key Features
+
+* Learns a parametric projection that maps high-dimensional data to a probabilistic latent space, enabling explicit modeling of uncertainty.
+* Represents each data point as a full, diagomal, or isotropic Gaussian distribution, capturing uncertainty in the projection.
+* Provides uncertainty-aware visualization of the projection, i.e., latent space, showing confidence around points.
+* Includes an inverse model to reconstruct original data from projected points.
+* Optimizes multiple losses to ensure accurate reconstruction, projection alignment, and interpretable uncertainty.
+
 
 ![Overview][1]
 
-[1]: https://github.com/fredooo/DE-VAE/raw/main/overview.png
+In this example, the encoder of a DE-VAE learns a parametric projection $P$ of MNIST, mapping each data point $x_i$ to a full Gaussian $\mathcal{N}(\mu, \Sigma)$, modeling the uncertainty of a UMAP projection. The decoder learns an inverse projection $P^{-1}$, taking $y_k$, and reconstructing a plausible sample $\hat{x}_k$. $P$ enables uncertainty-aware visualization of the latent space. DE-VAEs optimize the losses: $L_{\text{recon}}$, ensuring reconstruction; $L_{\text{proj}}$, aligns $\mu$ with points of the projection; $L_{\text{ent}}$ maximizes the variance of $\Sigma$. To show learned Gaussian distributions, we depict the 1st, 2nd, and 3rd standard deviations as ellipses around two randomly sampled points per class.
+
+## Requirements
+
+* **Python** ≥ 3.10 ([Python 3.10.x](https://www.python.org/downloads/release/python-3100/))
+* **Virtual environment**: [venv](https://docs.python.org/3/library/venv.html) 
 
 ## How to Run
 
@@ -26,7 +44,7 @@ pip3 install -r requirements.txt
 sh ./setup.sh
 ```
 
-### 2. Train Models (Optional)
+### 2. Train Models (Optional - May take some time)
 
 If you'd like to train the models yourself instead of using the pretrained ones:
 
@@ -61,3 +79,8 @@ python3 visual.py --model ./models/vae-full-fmnist-umap-p20.00-e4.00000-s0.pt
 | `vae_models.py`     | Defines the architectures for various VAE and AE model variants.                         |
 | `visual.py`         | Visual tools for exploring model outputs and projections.                                |
 
+## License
+
+This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
+
+[1]: https://github.com/fredooo/DE-VAE/raw/main/overview.png
