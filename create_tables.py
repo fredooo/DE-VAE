@@ -5,21 +5,31 @@ import pandas as pd
 import re
 
 RECORDS_DIR = "./records"  # root folder that holds the *.txt files
-DATASETS = {"har", "mnist", "fmnist"}
-MODELS = {"vae-isot", "vae-diag", "vae-full", "ae-regm"}
+DATASETS = ["mnist", "fmnist", "kmnist", "har"]
+MODELS = ["ae-regm", "vae-isot", "vae-diag", "vae-full"]
+PROJECTIONS = ["umap",  "tsne", "pca", "mds", "isomap", "lle"]
 SEEDS = range(10)
 
 MODEL_NAMES = {
-    "vae-isot": "VAE \\textbf{Full} Gaussian",
+    "vae-isot": "VAE \\textbf{Isotropic} Gaussian",
     "vae-diag": "VAE \\textbf{Diagonal} Gaussian",
     "vae-full": "VAE \\textbf{Full} Gaussian",
-    "ae-regm": "AE Mean Reg. (\textbf{None})"}
+    "ae-regm": "AE Mean Reg. (\\textbf{None})"}
 
 DATASET_NAMES = {
     "har": "HAR",
     "mnist": "MNIST",
     "fmnist": "Fashion-MNIST",
     "kmnist": "KMNIST"}
+
+PROJECTION_NAMES = {
+    "pca": "PCA",
+    "mds": "MDS",
+    "tsne": "t-SNE",
+    "umap": "UMAP",
+    "isomap": "Isomap",
+    "lle": "LLE"}
+    
 
 num_pattern = r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?|[+-]?inf|nan"
 
@@ -76,62 +86,69 @@ def parse_file(path: str):
 
 
 def summarise(df: pd.DataFrame):
-    out = {}
+    row = []
     for col in df.columns:
         vals = df[col].dropna().to_numpy(dtype=float)
         if vals.size:
-            out[col] = f"${vals.mean():.3f} \\pm {vals.std(ddof=0):.3f}$"
+            row.append(f"${vals.mean():.3f} \\pm {vals.std(ddof=0):.3f}$")
         else:
-            out[col] = "--"
-    return pd.Series(out, name="$\\mu \\pm \\sigma$")
+            row.append("---")
+    return row
 
 
 def run_full():
-    for dataset in sorted(DATASETS):
-        for model in sorted(MODELS):
-            # gather one DataFrame with 10 rows (one per seed)
-            rows = {}
-            for seed in SEEDS:
-                pattern = f"{model}-{dataset}-p*-e*-s{seed}.txt"
-                matches = glob.glob(os.path.join(RECORDS_DIR, pattern))
-                if not matches:
-                    continue  # file missing - skip seed
-                rows[seed] = parse_file(matches[0])
+    for dataset in DATASETS:
+        for projection in PROJECTIONS:
+            print("\\subsubsection{" + DATASET_NAMES[dataset] + " with " + PROJECTION_NAMES[projection] + "}")
+            for model in MODELS:
+                # gather one DataFrame with 10 rows (one per seed)
+                rows = {}
+                for seed in SEEDS:
+                    pattern = f"{model}-{dataset}-p*-e*-s{seed}.txt"
+                    matches = glob.glob(os.path.join(RECORDS_DIR, pattern))
+                    if not matches:
+                        continue  # file missing - skip seed
+                    rows[seed] = parse_file(matches[0])
 
-            if not rows:
-                # No files for this (dataset, model); skip silently
-                continue
+                if not rows:
+                    # No files for this (dataset, model); skip silently
+                    continue
 
-            df = pd.DataFrame.from_dict(rows, orient="index")
-            
-            df["Seed"] = df.index
+                df = pd.DataFrame.from_dict(rows, orient="index")
+                
+                # add aggregation row
+                row = summarise(df)
+                df.loc[len(df)] = row
 
-            df = df[["Seed", "TrainingTime", "Recon", "Proj", "Ent", "Epochs"]]
+                df["Seed"] = df.index.astype(str)
 
-            # add aggregate row
-            df = pd.concat([df, summarise(df)], axis=0)
+                df.loc[10, "Seed"] = "$\\mu \\pm \\sigma$"
 
-            df.rename(columns={
-                    "TrainingTime": "Training Time (s)",
-                    "Recon": "$\\altmathcal{L}_{\\text{recon}}$",
-                    "Proj": "$\\altmathcal{L}_{\\text{proj}}$",
-                    "Ent": "$\\altmathcal{L}_{\\text{ent}}$"}, inplace=True)
-            
-            # pretty LaTeX
-            latex_table = df.to_latex(
-                index=False,
-                formatters={"Seed": lambda x: f"{math.floor(x)}"},
-                float_format="%.3f",
-                na_rep="---",
-                escape=False,
-                column_format="lrrrrrr",
-                caption=f"{MODEL_NAMES[model]} on {DATASET_NAMES[dataset]}: Test metrics and training time (10 seeds)",
-                label=f"tab:{model}-{dataset}",
-                position="!h"
-            )
+                df = df[["Seed", "TrainingTime", "Recon", "Proj", "Ent", "Epochs"]]
 
-            print(latex_table)
-            print("\n")
+                df.rename(columns={
+                        "TrainingTime": "Training Time (s)",
+                        "Recon": "$\\altmathcal{L}_{\\text{recon}}$",
+                        "Proj": "$\\altmathcal{L}_{\\text{proj}}$",
+                        "Ent": "$\\altmathcal{L}_{\\text{ent}}$"}, inplace=True)
+                
+                # pretty LaTeX
+                latex_table = df.to_latex(
+                    index=False,
+                    float_format="%.3f",
+                    na_rep="---",
+                    escape=False,
+                    column_format="lrrrrrr",
+                    caption=f"{MODEL_NAMES[model]} on {DATASET_NAMES[dataset]} with {PROJECTION_NAMES[projection]}: Test metrics and training time (10 seeds)",
+                    label=f"tab:{model}-{dataset}-{projection}",
+                    position="!h"
+                )
+
+                latex_table = latex_table.replace("\\begin{table}[!h]","\\begin{table}[!h]\n\\centering").replace("\n$\\mu \\pm \\sigma$", "\n\\midrule\n$\\mu \\pm \\sigma$")
+
+                print(latex_table)
+
+            print("\\clearpage\n")
 
 
 if __name__ == "__main__":
