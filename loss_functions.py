@@ -19,14 +19,15 @@ def kl_divergence_cholesky(mu, L):
 
 
 def differential_entropy(logvar):
-    return 0.5 * torch.sum(1 + logvar + math.log(2 * math.pi), dim=1).sum()
+    constant = torch.log(torch.tensor(2 * math.pi, device=logvar.device))
+    return 0.5 * torch.sum(1 + logvar + constant, dim=1).sum()
 
 
 def differential_entropy_cholesky(L):
     latent_dim = L.size(1)
     diag_L = torch.diagonal(L, dim1=1, dim2=2)
     log_det_cov = 2.0 * torch.sum(torch.log(diag_L + 1e-8), dim=1)
-    constant = 0.5 * latent_dim * (1 + math.log(2 * math.pi))
+    constant = 0.5 * latent_dim * (1 + torch.log(torch.tensor(2 * math.pi, device=L.device)))
     entropy = constant + 0.5 * log_det_cov
     return entropy.sum()
 

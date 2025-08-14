@@ -98,7 +98,7 @@ def train(model_type: str, dataset: str, projection: str, l_proj: float, l_ent: 
 
     # Load dataset
     if data_loaders is None:
-        train_loader, val_loader, test_loader = create_loaders_for_dataset(dataset)
+        train_loader, val_loader, test_loader = create_loaders_for_dataset(dataset, projection)
     else:
         train_loader, val_loader, test_loader = data_loaders
 

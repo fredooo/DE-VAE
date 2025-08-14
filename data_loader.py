@@ -113,7 +113,7 @@ def create_data_loaders(dataset, points_2d, labels, batch_size=64):
     return train_loader, val_loader, test_loader
 
 
-def create_loaders_for_dataset(dataset_name):
+def create_loaders_for_dataset(dataset_name, projection):
     if dataset_name == "mnist":
         vectors, _ = load_mnist()
     elif dataset_name == "fmnist":
@@ -124,7 +124,7 @@ def create_loaders_for_dataset(dataset_name):
         vectors, _ = load_har()
     else:
         vectors = torch.tensor(pd.read_csv(f"./datasets/{dataset_name}.csv").values).float()
-    points_2d, labels = load_csv_to_tensors(f"./preprocessed/{dataset_name}/umap.csv")
+    points_2d, labels = load_csv_to_tensors(f"./preprocessed/{dataset_name}/{projection}.csv")
     return create_data_loaders(vectors, points_2d, labels)
 
 

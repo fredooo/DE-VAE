@@ -174,7 +174,7 @@ def main(model_path: str):
     model = load(model_path)
     model.eval()
 
-    _, _, test_loader = create_loaders_for_dataset(model.dataset)
+    _, _, test_loader = create_loaders_for_dataset(model.dataset, model.projection)
 
     _, points, labels, _, mu_out, logvar_out = model_outputs(model, test_loader)
 
