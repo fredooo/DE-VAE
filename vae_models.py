@@ -188,8 +188,15 @@ def save(model, dir_path="models", verbose: bool = False):
 
 
 def create_model_from_params(model_type: str, dataset: str, projection: str, l_proj: float, l_ent: float, seed: int):
-    io_dim = 561 if dataset == "har" else 28*28
-    loss_recon = nn.MSELoss(reduction='sum') if dataset == "har" else nn.BCELoss(reduction='sum')
+    io_dim = 28*28
+    if dataset == "har":
+        io_dim = 561
+    elif "_" in dataset:
+        io_dim = int(dataset.split("_")[1])
+    
+    loss_recon = nn.MSELoss(reduction='sum')
+    if dataset == "mnist" or dataset == "fmnist" or dataset == "kmnist":
+        loss_recon = nn.BCELoss(reduction='sum')
 
     if model_type == "vae-full":
         model = VaeGaussianFull(dataset, projection, io_dim, 2, loss_recon, l_proj, l_ent, seed)
@@ -206,7 +213,7 @@ def create_model_from_params(model_type: str, dataset: str, projection: str, l_p
 
 def load(filepath):
     filename = os.path.basename(filepath)
-    match = re.match(r"(vae-full|vae-diag|vae-isot|ae-regm)-(mnist|fmnist|kmnist|har)-(umap|tsne|lle|mds|pca|isomap)-p([\d.]+)-e([\d.]+)-s(\d+)\.pt", filename)
+    match = re.match(r"(vae-full|vae-diag|vae-isot|ae-regm)-(mnist|fmnist|kmnist|har|[a-z]+_\d+)-(umap|tsne|lle|mds|pca|isomap)-p([\d.]+)-e([\d.]+)-s(\d+)\.pt", filename)
     if not match:
         raise ValueError("Filename format is invalid")
     model_type, dataset, projection, l_proj, l_ent, seed = match.groups()
