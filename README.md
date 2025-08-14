@@ -41,7 +41,7 @@ source .venv/bin/activate
 pip3 install -r requirements.txt
 
 # Download pretrained models and datasets
-sh ./setup.sh
+sh ./retrieve_replication.sh
 ```
 
 #### 1.1 Optional: Train Models (may take some time)
@@ -53,7 +53,7 @@ If you'd like to train the models yourself instead of using the pretrained ones:
 python3 projections.py
 
 # Train VAE/AE models
-python3 trainer.py --run-full
+python3 trainer.py
 ```
 
 ### 2. Visualize Results

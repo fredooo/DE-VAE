@@ -1,4 +1,5 @@
 import numpy as np
+from pathlib import Path
 import pandas as pd
 import torch
 from torch.utils.data import DataLoader, Dataset, random_split, Subset
@@ -58,8 +59,30 @@ def load_har():
     labels = labels.to_numpy().flatten()
     labels = np.unique(labels, return_inverse=True)[1]
     data.drop(['subject', 'Activity'], axis=1, inplace=True)
-    print("HAR vectors shape", data.to_numpy().shape)
     return torch.from_numpy(data.to_numpy()).float().view(-1, 561), torch.from_numpy(labels)
+
+
+def load_user_csv(path: str, label_col = None):
+    data = pd.read_csv(path)
+    if label_col is not None:
+        labels = data[label_col]
+        labels = labels.to_numpy().flatten()
+        labels = np.unique(labels, return_inverse=True)[1]
+        data.drop(label_col, axis=1, inplace=True)
+    else:
+        labels = np.zeros(len(data), dtype=np.int64)
+    
+    num_features = data.shape[1]
+    name = Path(path).stem + "_" + str(num_features)
+
+    datasets_dir = Path("./datasets")
+    datasets_dir.mkdir(parents=True, exist_ok=True)
+    save_path = datasets_dir / f"{name}.csv"
+    data.to_csv(save_path, index=False)
+
+    features = torch.from_numpy(data.to_numpy()).float().view(-1, num_features)
+    labels = torch.from_numpy(labels)
+    return name, features, labels
 
 
 def load_csv_to_tensors(csv_path):
@@ -100,7 +123,7 @@ def create_loaders_for_dataset(dataset_name):
     elif dataset_name == "har":
         vectors, _ = load_har()
     else:
-        raise ValueError("Unrecognized model type in filename")
+        vectors = torch.tensor(pd.read_csv(f"./datasets/{dataset_name}.csv").values).float()
     points_2d, labels = load_csv_to_tensors(f"./preprocessed/{dataset_name}/umap.csv")
     return create_data_loaders(vectors, points_2d, labels)
 

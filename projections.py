@@ -54,7 +54,7 @@ def project_data(vectors, labels, output_prefix, method: str = "umap"):
     plot_projection_from_loader(val_loader, "Validation Data", f"./images/projections/{method}/{output_prefix}_val_data.png")
     plot_projection_from_loader(test_loader, "Test Data", f"./images/projections/{method}/{output_prefix}_test_data.png")
 
-    return model
+    return model, embedding
 
 
 def sample_umap_grid_and_inverse(umap_model, output_prefix, grid_size=7, img_shape=(28, 28)):
@@ -109,7 +109,7 @@ def process_mnist():
     project_data(vectors, labels, output_prefix, method="lle")
     project_data(vectors, labels, output_prefix, method="pca")
     project_data(vectors, labels, output_prefix, method="tsne")
-    umap_model = project_data(vectors, labels, output_prefix, method="umap")
+    umap_model, _ = project_data(vectors, labels, output_prefix, method="umap")
     sample_umap_grid_and_inverse(umap_model, output_prefix, grid_size=7)
 
 
@@ -120,7 +120,7 @@ def process_fashion_mnist():
     project_data(vectors, labels, output_prefix, method="lle")
     project_data(vectors, labels, output_prefix, method="pca")
     project_data(vectors, labels, output_prefix, method="tsne")
-    umap_model = project_data(vectors, labels, output_prefix, method="umap")
+    umap_model, _ = project_data(vectors, labels, output_prefix, method="umap")
     sample_umap_grid_and_inverse(umap_model, output_prefix, grid_size=7)
 
 
@@ -131,7 +131,7 @@ def process_kmnist():
     project_data(vectors, labels, output_prefix, method="lle")
     project_data(vectors, labels, output_prefix, method="pca")
     project_data(vectors, labels, output_prefix, method="tsne")
-    umap_model = project_data(vectors, labels, output_prefix, method="umap")
+    umap_model, _ = project_data(vectors, labels, output_prefix, method="umap")
     sample_umap_grid_and_inverse(umap_model, output_prefix, grid_size=7)
 
 

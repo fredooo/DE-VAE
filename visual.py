@@ -207,7 +207,7 @@ def main(model_path: str):
     plt.savefig(pdf_path, format="pdf")
     plt.show()
 
-    if model.dataset != "har":
+    if model.dataset == "mnist" or model.dataset == "fmnist" or model.dataset == "kmnist":
         plot_decoded_umap_grid(model)
 
 
