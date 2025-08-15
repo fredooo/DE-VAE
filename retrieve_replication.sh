@@ -7,11 +7,11 @@ mkdir -p temp models records preprocessed
 
 # File URLs
 declare -A files=(
-    ["models.tar.xz.part-00"]="https://osf.io/download/2sujd/"
-    ["models.tar.xz.part-01"]="https://osf.io/download/cgds5/"
-    ["models.tar.xz.part-02"]="https://osf.io/download/3g4qa/"
+    ["models.tar.xz.part-00"]="https://osf.io/download/73ngt/"
+    ["models.tar.xz.part-01"]="https://osf.io/download/kahv9/"
+    ["models.tar.xz.part-02"]="https://osf.io/download/2f8ye/"
+    ["preprocessed.tar.xz"]="https://osf.io/download/fbv3m/"
     ["records.tar.xz"]="https://osf.io/download/rjax6/"
-    ["preprocessed.tar.xz"]="https://osf.io/download/32p4q/"
 )
 
 # Download all files
