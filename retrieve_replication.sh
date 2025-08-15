@@ -10,8 +10,8 @@ declare -A files=(
     ["models.tar.xz.part-00"]="https://osf.io/download/73ngt/"
     ["models.tar.xz.part-01"]="https://osf.io/download/kahv9/"
     ["models.tar.xz.part-02"]="https://osf.io/download/2f8ye/"
-    ["preprocessed.tar.xz"]="https://osf.io/download/fbv3m/"
-    ["records.tar.xz"]="https://osf.io/download/rjax6/"
+    ["preprocessed.tar.xz"]="https://osf.io/download/fm6z5/"
+    ["records.tar.xz"]="https://osf.io/download/cpvsb/"
 )
 
 # Download all files
