@@ -7,11 +7,11 @@ mkdir -p temp models records preprocessed
 
 # File URLs
 declare -A files=(
-    ["models.tar.gz.00"]="https://osf.io/download/2sujd/"
-    ["models.tar.gz.01"]="https://osf.io/download/cgds5/"
-    ["models.tar.gz.02"]="https://osf.io/download/3g4qa/"
-    ["records.tar.gz"]="https://osf.io/download/rjax6/"
-    ["preprocessed.tar.gz"]="https://osf.io/download/32p4q/"
+    ["models.tar.xz.part-00"]="https://osf.io/download/2sujd/"
+    ["models.tar.xz.part-01"]="https://osf.io/download/cgds5/"
+    ["models.tar.xz.part-02"]="https://osf.io/download/3g4qa/"
+    ["records.tar.xz"]="https://osf.io/download/rjax6/"
+    ["preprocessed.tar.xz"]="https://osf.io/download/32p4q/"
 )
 
 # Download all files
@@ -28,18 +28,18 @@ for filename in "${!files[@]}"; do
 done
 
 # Combine parts
-echo "Combining model parts into models.tar.gz..."
-cat temp/models.tar.gz.0* > temp/models.tar.gz
+echo "Combining model parts into models.tar.xz ..."
+cat temp/models.tar.xz.part-0* > temp/models.tar.xz
 
 # Extract archives
-echo "Extracting models.tar.gz to models/"
-tar -xvzf temp/models.tar.gz -C models/
+echo "Extracting models.tar.xz"
+tar -xJvf temp/models.tar.xz
 
-echo "Extracting records.tar.gz to records/"
-tar -xvzf temp/records.tar.gz -C records/
+echo "Extracting records.tar.xz"
+tar -xJvf temp/records.tar.xz
 
-echo "Extracting preprocessed.tar.gz to preprocessed/"
-tar -xvzf temp/preprocessed.tar.gz -C preprocessed/
+echo "Extracting preprocessed.tar.xz"
+tar -xJvf temp/preprocessed.tar.xz
 
 echo "Deleting temp/"
 rm -r temp/

@@ -20,6 +20,8 @@ records/*.csv
 
 # Archives
 *.tar.gz
+*.tar.xz
+*.tar.xz.part-*
 *.zip
 
 #

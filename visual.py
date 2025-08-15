@@ -196,10 +196,10 @@ def main(model_path: str):
         draw_std_ellipses_filled(mu_plot, std_plot, scale=1.0)
 
     plt.axis('square')
-
-    plt.xlabel("x")
-    plt.ylabel("y")
-    plt.title("Latent Space")
+    
+    ax = plt.gca()
+    ax.axes.xaxis.set_visible(False) # type: ignore
+    ax.axes.yaxis.set_visible(False) # type: ignore
 
     plt.tight_layout()
     pdf_path = Path(f"./images/latent/{model.name}.pdf")

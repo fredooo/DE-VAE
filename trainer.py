@@ -143,7 +143,7 @@ def train(model_type: str, dataset: str, projection: str, l_proj: float, l_ent: 
 
 def run_full():
     models = ["ae-regm", "vae-full", "vae-diag", "vae-isot"]
-    seeds = [777, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    seeds = range(10)
 
     datasets = ["mnist"]
     projections = ["umap"]
@@ -189,7 +189,30 @@ def run_full():
                     train(m, d, p, l_proj, l_ent, s)
                     print(f"GC cleared {gc.collect()} objects")
 
-    datasets = ["har", "mnist", "fmnist", "kmnist"]
+    
+    datasets = ["kmnist"]
+    projections = ["tsne"]
+    l_proj = 20.0
+    l_ent = 3.0
+    for m in models:
+        for d in datasets:
+            for p in projections:
+                for s in seeds:
+                    train(m, d, p, l_proj, l_ent, s)
+                    print(f"GC cleared {gc.collect()} objects")
+
+    datasets = ["kmnist"]
+    projections = ["pca"]
+    l_proj = 20.0
+    l_ent = 1.0
+    for m in models:
+        for d in datasets:
+            for p in projections:
+                for s in seeds:
+                    train(m, d, p, l_proj, l_ent, s)
+                    print(f"GC cleared {gc.collect()} objects")
+
+    datasets = ["har", "mnist", "fmnist"]
     projections = ["pca", "tsne"]
     l_proj = 20.0
     l_ent = 1.0
