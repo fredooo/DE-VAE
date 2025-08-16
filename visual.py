@@ -239,9 +239,9 @@ def plot_decoded_umap_grid(ae_model):
         ax.axis('off')
     plt.tight_layout()
 
-    pdf_path = Path(f"./images/grid/{ae_model.name}.pdf")
-    pdf_path.parent.mkdir(parents=True, exist_ok=True)
-    plt.savefig(pdf_path)
+    png_path = Path(f"./images/grid/{ae_model.name}.png")
+    png_path.parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(png_path)
     plt.show()
 
 
