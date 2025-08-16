@@ -212,7 +212,7 @@ def run_full():
                     train(m, d, p, l_proj, l_ent, s)
                     print(f"GC cleared {gc.collect()} objects")
 
-    datasets = ["har", "mnist", "fmnist"]
+    datasets = ["mnist", "fmnist"]
     projections = ["pca", "tsne"]
     l_proj = 20.0
     l_ent = 1.0
