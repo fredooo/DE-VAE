@@ -6,6 +6,18 @@ import pandas as pd
 import re
 from tabulate import tabulate
 
+PAIRS = [
+	("mnist", "umap"),
+	("mnist", "pca"),
+	("mnist", "tsne"),
+	("fmnist", "umap"),
+	("fmnist", "pca"),
+	("fmnist", "tsne"),
+	("kmnist", "umap"),
+	("kmnist", "pca"),
+	("kmnist", "tsne"),
+	("har", "umap")]
+
 RECORDS_DIR = "./records"  # root folder that holds the *.txt files
 DATASETS = ["mnist", "fmnist", "kmnist", "har"]
 MODELS = ["ae-regm", "vae-isot", "vae-diag", "vae-full"]
@@ -167,18 +179,17 @@ def df_to_latex_str(df, model, dataset, projection):
 
 
 def run_full():
-    for dataset in DATASETS:
-        for projection in PROJECTIONS:
-            out = ""
-            for model in MODELS:
-                df = create_single_table(model, dataset, projection)
-                if df is not None:
-                    latex_table = df_to_latex_str(df, model, dataset, projection)
-                    out += latex_table
-            if len(out) > 0:
-                print("\\subsubsection{" + DATASET_NAMES[dataset] + " with " + PROJECTION_NAMES[projection] + "}\n")
-                print(out)
-                print("\\clearpage\n")
+    for dataset, projection in PAIRS:
+        out = ""
+        for model in MODELS:
+            df = create_single_table(model, dataset, projection)
+            if df is not None:
+                latex_table = df_to_latex_str(df, model, dataset, projection)
+                out += latex_table
+        if len(out) > 0:
+            print("\\subsubsection{" + DATASET_NAMES[dataset] + " with " + PROJECTION_NAMES[projection] + "}\n")
+            print(out)
+            print("\\clearpage\n")
 
 def print_df_on_terminal(df, model, dataset, projection):
     if df is None:
@@ -205,40 +216,38 @@ def create_summary_table():
     epochs_rows = []
     time_rows = []
 
-    for dataset in DATASETS:
-        for projection in ["umap"]:  # your example uses UMAP only
-            row_proj = [f"\\textbf{{{DATASET_NAMES[dataset]} ({PROJECTION_NAMES[projection]})}}"]
-            row_recon = [f"\\textbf{{{DATASET_NAMES[dataset]}}}"]
-            row_epochs = [f"\\textbf{{{DATASET_NAMES[dataset]} ({PROJECTION_NAMES[projection]})}}"]
-            row_time = [f"\\textbf{{{DATASET_NAMES[dataset]} ({PROJECTION_NAMES[projection]})}}"]
+    for dataset, projection in PAIRS:
+        row_proj = [f"\\textbf{{{DATASET_NAMES[dataset]} ({PROJECTION_NAMES[projection]})}}"]
+        row_recon = [f"\\textbf{{{DATASET_NAMES[dataset]}}}"]
+        row_epochs = [f"\\textbf{{{DATASET_NAMES[dataset]} ({PROJECTION_NAMES[projection]})}}"]
+        row_time = [f"\\textbf{{{DATASET_NAMES[dataset]} ({PROJECTION_NAMES[projection]})}}"]
 
-            for model in summary_model_order:
-                df = create_single_table(model, dataset, projection)
-                if df is None:
-                    row_proj.append("---")
-                    row_recon.append("---")
-                    row_epochs.append("---")
-                    row_time.append("---")
-                    continue
+        for model in summary_model_order:
+            df = create_single_table(model, dataset, projection)
+            if df is None:
+                row_proj.append("---")
+                row_recon.append("---")
+                row_epochs.append("---")
+                row_time.append("---")
+                continue
 
-                # last row = μ ± σ
-                agg = df.iloc[-1]
+            # last row
+            agg = df.iloc[-1]
 
-                def format_val(val):
-                    if isinstance(val, str) and "±" in val:
-                        # already μ ± σ string
-                        return f"${val}$"
-                    return "---"
+            def format_val(val):
+                if isinstance(val, str) and "±" in val:
+                    return val.replace("±", "$\\pm$")
+                return "---"
 
-                row_proj.append(format_val(agg["Proj"]))
-                row_recon.append(format_val(agg["Recon"]))
-                row_epochs.append(format_val(agg["Epochs"]))
-                row_time.append(format_val(agg["TrainingTime"]))
+            row_proj.append(format_val(agg["Proj"]))
+            row_recon.append(format_val(agg["Recon"]))
+            row_epochs.append(format_val(agg["Epochs"]))
+            row_time.append(format_val(agg["TrainingTime"]))
 
-            proj_rows.append(" & ".join(row_proj) + " \\\\")
-            recon_rows.append(" & ".join(row_recon) + " \\\\")
-            epochs_rows.append(" & ".join(row_epochs) + " \\\\")
-            time_rows.append(" & ".join(row_time) + " \\\\")
+        proj_rows.append(" & ".join(row_proj) + " \\\\")
+        recon_rows.append(" & ".join(row_recon) + " \\\\")
+        epochs_rows.append(" & ".join(row_epochs) + " \\\\")
+        time_rows.append(" & ".join(row_time) + " \\\\")
 
     # Build final LaTeX
     header = (
@@ -247,34 +256,34 @@ def create_summary_table():
         "\\small\n"
         "\\centering\n"
         "\\begin{tabular}{lcccc}\n"
-        "& \\\\textbf{None} & \\\\textbf{Isotropic} & \\\\textbf{Diagonal} & \\\\textbf{Full} \\\\\n"
+        "& \\textbf{None} & \\textbf{Isotropic} & \\textbf{Diagonal} & \\textbf{Full} \\\\\n"
         "\\hline\n\\hline\n"
     )
 
     proj_block = (
-        "\\multicolumn{5}{c}{\\\\textit{Parametric projection: Average projection loss $\\\\altmathcal{L}_\\\\text{proj}$ (lower is better)}} \\\\\n"
+        "\\multicolumn{5}{c}{\\textit{Parametric projection: Average projection loss $\\altmathcal{L}_\\text{proj}$ (lower is better)}} \\\\\n"
         "\\hline\n" + "\n".join(proj_rows) + "\n\\hline\n"
     )
 
     recon_block = (
-        "\\multicolumn{5}{c}{\\\\textit{Inverse Projection: Average reconstruction loss $\\\\altmathcal{L}_\\\\text{recon}$ (lower is better)}} \\\\\n"
+        "\\multicolumn{5}{c}{\\textit{Inverse Projection: Average reconstruction loss $\\altmathcal{L}_\\text{recon}$ (lower is better)}} \\\\\n"
         "\\hline\n" + "\n".join(recon_rows) + "\n\\hline\n"
     )
 
     epochs_block = (
-        "\\multicolumn{5}{c}{\\\\textit{Number of training epochs until validation loss convergence (lower is better)}} \\\\\n"
+        "\\multicolumn{5}{c}{\\textit{Number of training epochs until validation loss convergence (lower is better)}} \\\\\n"
         "\\hline\n" + "\n".join(epochs_rows) + "\n\\hline\n"
     )
 
     time_block = (
-        "\\multicolumn{5}{c}{\\\\textit{Training time in seconds (lower is better)}} \\\\\n"
+        "\\multicolumn{5}{c}{\\textit{Training time in seconds (lower is better)}} \\\\\n"
         "\\hline\n" + "\n".join(time_rows) + "\n"
     )
 
     footer = (
         "\\end{tabular}\n"
         "\\vspace{0.5em}\n"
-        "\\caption{Average losses and standard deviation (after $\\\\pm$) of the parametric and inverse projections on test data for 10 runs each, as well as, average number of training epochs and running time}\n"
+        "\\caption{Average losses and standard deviation (after $\\pm$) of the parametric and inverse projections on test data for 10 runs each, as well as, average number of training epochs and running time}\n"
         "\\label{tab:experiment-data}\n"
         "\\end{table}\n"
     )
