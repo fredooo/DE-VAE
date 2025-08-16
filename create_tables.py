@@ -217,10 +217,11 @@ def create_summary_table():
     time_rows = []
 
     for dataset, projection in PAIRS:
-        row_proj = [f"\\textbf{{{DATASET_NAMES[dataset]} ({PROJECTION_NAMES[projection]})}}"]
-        row_recon = [f"\\textbf{{{DATASET_NAMES[dataset]}}}"]
-        row_epochs = [f"\\textbf{{{DATASET_NAMES[dataset]} ({PROJECTION_NAMES[projection]})}}"]
-        row_time = [f"\\textbf{{{DATASET_NAMES[dataset]} ({PROJECTION_NAMES[projection]})}}"]
+        start = f"\\textbf{{{DATASET_NAMES[dataset]} ({PROJECTION_NAMES[projection]})}}"
+        row_proj = [start]
+        row_recon = [start]
+        row_epochs = [start]
+        row_time = [start]
 
         for model in summary_model_order:
             df = create_single_table(model, dataset, projection)
