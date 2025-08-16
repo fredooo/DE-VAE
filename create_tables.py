@@ -195,6 +195,92 @@ def print_df_on_terminal(df, model, dataset, projection):
     print(pretty)
 
 
+def create_summary_table():
+    # Define the ordering of models for the summary table
+    summary_model_order = ["ae-regm", "vae-isot", "vae-diag", "vae-full"]
+
+    # Containers for each block
+    proj_rows = []
+    recon_rows = []
+    epochs_rows = []
+    time_rows = []
+
+    for dataset in DATASETS:
+        for projection in ["umap"]:  # your example uses UMAP only
+            row_proj = [f"\\textbf{{{DATASET_NAMES[dataset]} ({PROJECTION_NAMES[projection]})}}"]
+            row_recon = [f"\\textbf{{{DATASET_NAMES[dataset]}}}"]
+            row_epochs = [f"\\textbf{{{DATASET_NAMES[dataset]} ({PROJECTION_NAMES[projection]})}}"]
+            row_time = [f"\\textbf{{{DATASET_NAMES[dataset]} ({PROJECTION_NAMES[projection]})}}"]
+
+            for model in summary_model_order:
+                df = create_single_table(model, dataset, projection)
+                if df is None:
+                    row_proj.append("---")
+                    row_recon.append("---")
+                    row_epochs.append("---")
+                    row_time.append("---")
+                    continue
+
+                # last row = μ ± σ
+                agg = df.iloc[-1]
+
+                def format_val(val):
+                    if isinstance(val, str) and "±" in val:
+                        # already μ ± σ string
+                        return f"${val}$"
+                    return "---"
+
+                row_proj.append(format_val(agg["Proj"]))
+                row_recon.append(format_val(agg["Recon"]))
+                row_epochs.append(format_val(agg["Epochs"]))
+                row_time.append(format_val(agg["TrainingTime"]))
+
+            proj_rows.append(" & ".join(row_proj) + " \\\\")
+            recon_rows.append(" & ".join(row_recon) + " \\\\")
+            epochs_rows.append(" & ".join(row_epochs) + " \\\\")
+            time_rows.append(" & ".join(row_time) + " \\\\")
+
+    # Build final LaTeX
+    header = (
+        "\\begin{table}[h!]\n"
+        "\\setlength{\\tabcolsep}{1.0mm}\n"
+        "\\small\n"
+        "\\centering\n"
+        "\\begin{tabular}{lcccc}\n"
+        "& \\\\textbf{None} & \\\\textbf{Isotropic} & \\\\textbf{Diagonal} & \\\\textbf{Full} \\\\\n"
+        "\\hline\n\\hline\n"
+    )
+
+    proj_block = (
+        "\\multicolumn{5}{c}{\\\\textit{Parametric projection: Average projection loss $\\\\altmathcal{L}_\\\\text{proj}$ (lower is better)}} \\\\\n"
+        "\\hline\n" + "\n".join(proj_rows) + "\n\\hline\n"
+    )
+
+    recon_block = (
+        "\\multicolumn{5}{c}{\\\\textit{Inverse Projection: Average reconstruction loss $\\\\altmathcal{L}_\\\\text{recon}$ (lower is better)}} \\\\\n"
+        "\\hline\n" + "\n".join(recon_rows) + "\n\\hline\n"
+    )
+
+    epochs_block = (
+        "\\multicolumn{5}{c}{\\\\textit{Number of training epochs until validation loss convergence (lower is better)}} \\\\\n"
+        "\\hline\n" + "\n".join(epochs_rows) + "\n\\hline\n"
+    )
+
+    time_block = (
+        "\\multicolumn{5}{c}{\\\\textit{Training time in seconds (lower is better)}} \\\\\n"
+        "\\hline\n" + "\n".join(time_rows) + "\n"
+    )
+
+    footer = (
+        "\\end{tabular}\n"
+        "\\vspace{0.5em}\n"
+        "\\caption{Average losses and standard deviation (after $\\\\pm$) of the parametric and inverse projections on test data for 10 runs each, as well as, average number of training epochs and running time}\n"
+        "\\label{tab:experiment-data}\n"
+        "\\end{table}\n"
+    )
+
+    return header + proj_block + recon_block + epochs_block + time_block + footer
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate and print evaluation tables.")
 
@@ -202,11 +288,15 @@ if __name__ == "__main__":
     parser.add_argument("--dataset", help="dataset name key (e.g., 'mnist')")
     parser.add_argument("--projection", help="projection name key (e.g., 'umap')")
     parser.add_argument("--all-latex", action="store_true", help="Run full evaluation to generate all LaTeX tables")
+    parser.add_argument("--summary-latex", action="store_true", help="Generate final summary LaTeX table")
 
     args = parser.parse_args()
 
     if args.all_latex:
         run_full()
+
+    elif args.summary_latex:
+        print(create_summary_table())
 
     elif args.model and args.dataset and args.projection:
         df = create_single_table(args.model, args.dataset, args.projection)
