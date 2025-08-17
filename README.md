@@ -19,7 +19,7 @@
 
 ![Overview][1]
 
-In this example, the encoder of a DE-VAE learns a parametric projection $P$ of MNIST, mapping each data point $x_i$ to a full Gaussian $\mathcal{N}(\mu, \Sigma)$, modeling the uncertainty of a UMAP projection. The decoder learns an inverse projection $P^{-1}$, taking $y_k$, and reconstructing a plausible sample $x̂_k$. $P$ enables uncertainty-aware visualization of the latent space. DE-VAEs optimize the losses: $L_{\text{recon}}$, ensuring reconstruction; $L_{\text{proj}}$, aligns $\mu$ with points of the projection; $L_{\text{ent}}$ maximizes the variance of $\Sigma$. To show learned Gaussian distributions, we depict the 1st, 2nd, and 3rd standard deviations as ellipses around two randomly sampled points per class.
+In this example, the encoder of a DE-VAE learns a parametric projection $P$ of MNIST, mapping each data point $x_i$ to a full Gaussian $\mathcal{N}(\mu, \Sigma)$, modeling the uncertainty of a UMAP projection. The decoder learns an inverse projection $P^{-1}$, taking $y_k$ and reconstructing a plausible sample $\hat{x}_k$. $P$ enables uncertainty-aware visualization of the latent space. DE-VAEs optimize the losses: $\mathcal{L}_{\text{recon}}$, ensuring reconstruction; $\mathcal{L}_{\text{proj}}$, aligning $\mu$ with points of the projection; and $\mathcal{L}_{\text{ent}}$, maximizing the variance of $\Sigma$. To show learned Gaussian distributions, we depict the 1st, 2nd, and 3rd standard deviations as ellipses around two randomly sampled points per class.
 
 ## Requirements
 
@@ -39,14 +39,16 @@ source .venv/bin/activate
 
 # Install dependencies
 pip3 install -r requirements.txt
+```
 
+### 2. Retrieve Trained Models
+
+```bash
 # Download pretrained models and datasets
 sh ./retrieve_replication.sh
 ```
 
-#### 1.1 Optional: Train Models (may take some time)
-
-If you'd like to train the models yourself instead of using the pretrained ones:
+**Optional:** If you'd like to train the models yourself instead (this may take some time):
 
 ```bash
 # Compute projection data
@@ -56,7 +58,7 @@ python3 projections.py
 python3 trainer.py
 ```
 
-### 2. Visualize Results
+### 3. Visualize Results
 
 Explore model outputs and projections visually, e.g., with:
 
@@ -71,7 +73,7 @@ Explore model outputs and projections visually, e.g., with:
 python3 visual.py --model ./models/vae-full-fmnist-umap-p20.00-e4.00000-s0.pt
 ```
 
-### 3. Show Quantitative Results
+### 4. Show Quantitative Results
 ```bash
 # usage: create_tables.py [-h] [--model MODEL] [--dataset DATASET] [--projection PROJECTION] [--all-latex]
 #
@@ -87,6 +89,26 @@ python3 visual.py --model ./models/vae-full-fmnist-umap-p20.00-e4.00000-s0.pt
 python3 create_tables.py --model vae-full --dataset mnist --projection umap
 ```
 
+### 5. Experimental: Train DE-VAE Models on Own Dataset 
+
+```bash
+# usage: main.py [-h] --model MODEL --data DATA [--label LABEL] --projection PROJECTION [--l-proj L_PROJ] [--l-ent L_ENT] [--seed SEED]
+# 
+# Generate and print evaluation tables.
+# 
+# options:
+#   -h, --help            show this help message and exit
+#   --model MODEL         model name key (e.g., 'vae-full')
+#   --data DATA           high-dimensional data as CSV file
+#   --label LABEL         Column name specifing class labels
+#   --projection PROJECTION
+#                         2D projection data as CSV file
+#   --l-proj L_PROJ       projection loss weight
+#   --l-ent L_ENT         entropy loss weight
+#   --seed SEED           random seed for reproducibility
+python3 main.py --model vae-full --data demo.csv --label class --projection umap  
+```
+
 ---
 
 ## File Overview
@@ -96,6 +118,7 @@ python3 create_tables.py --model vae-full --dataset mnist --projection umap
 | `create_tables.py`  | Generates tables summarizing model results for each dataset and projection method.       |
 | `data_loader.py`    | Loads and preprocesses datasets: MNIST, FashionMNIST, KMNIST, and HAR.                   |
 | `loss_functions.py` | Implements loss functions used during training of VAE/AE models.                         |
+| `main.py`           | Enables training of DE-VAE models for user-defined datasets and parameters.              |
 | `projections.py`    | Projects high-dimensional data to 2D using UMAP, t-SNE, and LLE.                         |
 | `trainer.py`        | Training loop and utilities for training VAE/AE models.                                  |
 | `vae_models.py`     | Defines the architectures for various VAE and AE model variants.                         |
