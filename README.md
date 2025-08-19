@@ -3,10 +3,10 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/)
 [![Uses: venv](https://img.shields.io/badge/Environment-venv-blue)](https://docs.python.org/3/library/venv.html)
-[![Paper](https://img.shields.io/badge/paper-arXiv-red)](https://arxiv.org/abs/xxxx.xxxxx)
+[![Paper](https://img.shields.io/badge/paper-arXiv-red)](https://arxiv.org/abs/2508.12145)
 [![OSF Project](https://img.shields.io/badge/OSF-View%20Project-lightgrey)](https://osf.io/zr6xf/)
 
-📄 **Paper:** *To be added*
+📄 **Paper:** [PDF](https://osf.io/gq8f7)
 
 ## Key Features
 
