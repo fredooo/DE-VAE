@@ -19,7 +19,7 @@
 
 ![Overview][1]
 
-In this example, the encoder of a DE-VAE learns a parametric projection $P$ of MNIST, mapping each data point $x_i$ to a full Gaussian $\mathcal{N}(\mu, \Sigma)$, modeling the uncertainty of a UMAP projection. The decoder learns an inverse projection $P^{-1}$, taking $y_k$ and reconstructing a plausible sample $x̂_k$. $P$ enables uncertainty-aware visualization of the latent space. DE-VAEs optimize the losses: $\mathcal{L}_{\text{recon}}$, ensuring reconstruction; $\mathcal{L}_{\text{proj}}$, aligning $\mu$ with points of the projection; and $\mathcal{L}_{\text{ent}}$, maximizing the variance of $\Sigma$. To show learned Gaussian distributions, we depict the 1st, 2nd, and 3rd standard deviations as ellipses around two randomly sampled points per class.
+In this example, the encoder of a DE-VAE learns a parametric projection $P$ of MNIST, mapping each data point $x_i$ to a full Gaussian $\mathcal{N}(\mu, \Sigma)$, modeling the uncertainty of a UMAP projection. The decoder learns an inverse projection $P^{-1}$, taking $y_k$ and reconstructing a plausible sample $x̂_k$. $P$ enables uncertainty-aware visualization of the latent space. DE-VAEs optimize the losses: $L_{\text{recon}}$, ensuring reconstruction; $L_{\text{proj}}$, aligning $\mu$ with points of the projection; and $L_{\text{ent}}$, maximizing the variance of $\Sigma$. To show learned Gaussian distributions, we depict the 1st, 2nd, and 3rd standard deviations as ellipses around two randomly sampled points per class.
 
 ## Requirements
 
