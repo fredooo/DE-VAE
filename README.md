@@ -70,6 +70,8 @@ Explore model outputs and projections visually, e.g., with:
 # options:
 #   -h, --help     show this help message and exit
 #   --model MODEL  Path to the model file.
+
+# Example:
 python3 visual.py --model ./models/vae-full-fmnist-umap-p20.00-e4.00000-s0.pt
 ```
 
@@ -86,6 +88,8 @@ python3 visual.py --model ./models/vae-full-fmnist-umap-p20.00-e4.00000-s0.pt
 #  --projection PROJECTION
 #                        projection name key (e.g., 'umap')
 #  --all-latex           Run full evaluation to generate all LaTeX tables
+
+# Example:
 python3 create_tables.py --model vae-full --dataset mnist --projection umap
 ```
 
@@ -106,7 +110,12 @@ python3 create_tables.py --model vae-full --dataset mnist --projection umap
 #   --l-proj L_PROJ       projection loss weight
 #   --l-ent L_ENT         entropy loss weight
 #   --seed SEED           random seed for reproducibility
-python3 main.py --model vae-full --data demo.csv --label class --projection umap  
+
+# Example:
+python3 main.py --model vae-diag --data datasets/blobs.csv --label "labels" --projection umap --l-proj 1.0 --l-ent 0.1 --seed 777
+
+# Show visualization
+python3 visual.py --model ./models/vae-diag-blobs_10-umap-p1.00-e0.10000-s777.pt
 ```
 
 ---
