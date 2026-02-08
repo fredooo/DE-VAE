@@ -1,12 +1,13 @@
 import gc
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from pathlib import Path
-from sklearn.decomposition import PCA
-from sklearn.manifold import Isomap, LocallyLinearEmbedding, MDS, TSNE
 import torch
 import umap
+from sklearn.decomposition import PCA
+from sklearn.manifold import MDS, TSNE, Isomap, LocallyLinearEmbedding
 
 from data_loader import create_data_loaders, load_fashion_mnist, load_har, load_kmnist, load_mnist
 from visual import plot_projection_from_loader
@@ -23,7 +24,7 @@ def project_data(vectors, labels, output_prefix, method: str = "umap"):
         embedding = np.array(model.fit_transform(vectors))
     elif method == "tsne":
         model = TSNE(n_components=2, random_state=projection_seed)
-        embedding = model.fit_transform(vectors) 
+        embedding = model.fit_transform(vectors)
     elif method == "mds":
         model = MDS(n_components=2, random_state=projection_seed, n_jobs=-1)
         embedding = model.fit_transform(vectors)
@@ -38,11 +39,7 @@ def project_data(vectors, labels, output_prefix, method: str = "umap"):
         embedding = model.fit_transform(vectors)
 
     # Save coordinates and labels to CSV
-    df = pd.DataFrame({
-        'x': embedding[:, 0],
-        'y': embedding[:, 1],
-        'label': labels.numpy()
-    })
+    df = pd.DataFrame({"x": embedding[:, 0], "y": embedding[:, 1], "label": labels.numpy()})
 
     csv_path = Path(f"./preprocessed/{output_prefix}/{method}.csv")
     csv_path.parent.mkdir(parents=True, exist_ok=True)
@@ -50,9 +47,15 @@ def project_data(vectors, labels, output_prefix, method: str = "umap"):
     print(f"Saved coordinates to: {csv_path}")
 
     train_loader, val_loader, test_loader = create_data_loaders(vectors, embedding, labels)
-    plot_projection_from_loader(train_loader, "Train Data", f"./images/projections/{method}/{output_prefix}_train_data.png")
-    plot_projection_from_loader(val_loader, "Validation Data", f"./images/projections/{method}/{output_prefix}_val_data.png")
-    plot_projection_from_loader(test_loader, "Test Data", f"./images/projections/{method}/{output_prefix}_test_data.png")
+    plot_projection_from_loader(
+        train_loader, "Train Data", f"./images/projections/{method}/{output_prefix}_train_data.png"
+    )
+    plot_projection_from_loader(
+        val_loader, "Validation Data", f"./images/projections/{method}/{output_prefix}_val_data.png"
+    )
+    plot_projection_from_loader(
+        test_loader, "Test Data", f"./images/projections/{method}/{output_prefix}_test_data.png"
+    )
 
     return model, embedding
 
@@ -82,8 +85,8 @@ def sample_umap_grid_and_inverse(umap_model, output_prefix, grid_size=7, img_sha
     for i in range(grid_size * grid_size):
         row, col = divmod(i, grid_size)
         ax = axes[grid_size - 1 - row, col]
-        ax.imshow(inverses[i], cmap='gray')
-        ax.axis('off')
+        ax.imshow(inverses[i], cmap="gray")
+        ax.axis("off")
     plt.tight_layout()
     img_path = Path(f"./images/projections/umap/{output_prefix}_umap_inverse.png")
     img_path.parent.mkdir(parents=True, exist_ok=True)

@@ -1,4 +1,5 @@
 import math
+
 import torch
 import torch.nn as nn
 
@@ -17,14 +18,13 @@ def differential_entropy_cholesky(L):
     return entropy.sum()
 
 
-def loss_gaussian_diagonal(recon_x, x, mu, logvar, mu_target, l_proj, l_ent,
-                           loss_recon: nn.BCELoss | nn.MSELoss = None,
-                           loss_proj=None
+def loss_gaussian_diagonal(
+    recon_x, x, mu, logvar, mu_target, l_proj, l_ent, loss_recon: nn.BCELoss | nn.MSELoss = None, loss_proj=None
 ):
     if loss_recon is None:
-        loss_recon = nn.BCELoss(reduction='sum')
+        loss_recon = nn.BCELoss(reduction="sum")
     if loss_proj is None:
-        loss_proj = nn.MSELoss(reduction='sum')
+        loss_proj = nn.MSELoss(reduction="sum")
     recon = loss_recon(recon_x, x)
     proj = loss_proj(mu, mu_target)
     entropy = differential_entropy(logvar)
@@ -32,14 +32,13 @@ def loss_gaussian_diagonal(recon_x, x, mu, logvar, mu_target, l_proj, l_ent,
     return loss, recon, proj, entropy
 
 
-def loss_gaussian_full(recon_x, x, mu, L, mu_target, l_proj, l_ent,
-                       loss_recon: nn.MSELoss | nn.BCELoss = None,
-                       loss_proj=None
+def loss_gaussian_full(
+    recon_x, x, mu, L, mu_target, l_proj, l_ent, loss_recon: nn.MSELoss | nn.BCELoss = None, loss_proj=None
 ):
     if loss_recon is None:
-        loss_recon = nn.BCELoss(reduction='sum')
+        loss_recon = nn.BCELoss(reduction="sum")
     if loss_proj is None:
-        loss_proj = nn.MSELoss(reduction='sum')
+        loss_proj = nn.MSELoss(reduction="sum")
     recon = loss_recon(recon_x, x)
     proj = loss_proj(mu, mu_target)
     entropy = differential_entropy_cholesky(L)
@@ -47,15 +46,12 @@ def loss_gaussian_full(recon_x, x, mu, L, mu_target, l_proj, l_ent,
     return loss, recon, proj, entropy
 
 
-def loss_reg_mean(recon_x, x, mu, mu_target, l_proj=1.0,
-                  loss_recon: nn.MSELoss | nn.BCELoss = None,
-                  loss_proj=None
-):
+def loss_reg_mean(recon_x, x, mu, mu_target, l_proj=1.0, loss_recon: nn.MSELoss | nn.BCELoss = None, loss_proj=None):
     if loss_recon is None:
-        loss_recon = nn.BCELoss(reduction='sum')
+        loss_recon = nn.BCELoss(reduction="sum")
     if loss_proj is None:
-        loss_proj = nn.MSELoss(reduction='sum')
+        loss_proj = nn.MSELoss(reduction="sum")
     recon = loss_recon(recon_x, x)
     proj = loss_proj(mu, mu_target)
     loss = recon + l_proj * proj
-    return loss, recon, proj, torch.tensor(-float('inf'), device=x.device)
+    return loss, recon, proj, torch.tensor(-float("inf"), device=x.device)

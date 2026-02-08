@@ -1,5 +1,5 @@
 import argparse
-from pathlib import Path
+
 import torch
 
 from data_loader import create_data_loaders, load_user_csv
@@ -29,4 +29,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     main(args.model, args.data, args.label, args.projection, args.l_proj, args.l_ent, args.seed)
-

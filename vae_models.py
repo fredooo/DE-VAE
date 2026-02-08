@@ -1,9 +1,11 @@
 import os
 import re
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from loss_functions import loss_gaussian_full, loss_gaussian_diagonal, loss_reg_mean
+
+from loss_functions import loss_gaussian_diagonal, loss_gaussian_full, loss_reg_mean
 
 
 class EncoderBase(nn.Module):
@@ -78,7 +80,9 @@ class Decoder(nn.Module):
 
 
 class AeBase(nn.Module):
-    def __init__(self, dataset: str, projection: str, io_dim: int, latent_dim: int, l_proj: float, l_ent: float, seed: int):
+    def __init__(
+        self, dataset: str, projection: str, io_dim: int, latent_dim: int, l_proj: float, l_ent: float, seed: int
+    ):
         super().__init__()
         self.dataset = dataset
         self.projection = projection
@@ -110,11 +114,21 @@ class AeBase(nn.Module):
 
 
 class VaeGaussianFull(AeBase):
-    def __init__(self, dataset: str, projection: str, io_dim: int, latent_dim: int, loss_recon: nn.BCELoss | nn.MSELoss, l_proj: float, l_ent: float, seed: int):
+    def __init__(
+        self,
+        dataset: str,
+        projection: str,
+        io_dim: int,
+        latent_dim: int,
+        loss_recon: nn.BCELoss | nn.MSELoss,
+        l_proj: float,
+        l_ent: float,
+        seed: int,
+    ):
         super().__init__(dataset, projection, io_dim, latent_dim, l_proj, l_ent, seed)
         self.loss_func = lambda a, b, c, d, e: loss_gaussian_full(a, b, c, d, e, l_proj, l_ent, loss_recon=loss_recon)
         self.encoder = EncoderGaussianFull(self.io_dim, latent_dim)
-        self.register_buffer('tril_idx', torch.tril_indices(latent_dim, latent_dim))
+        self.register_buffer("tril_idx", torch.tril_indices(latent_dim, latent_dim))
 
     def construct_L(self, L_params):
         batch_size = L_params.size(0)
@@ -135,9 +149,21 @@ class VaeGaussianFull(AeBase):
 
 
 class VaeGaussianDiagonal(AeBase):
-    def __init__(self, dataset: str, projection: str, io_dim: int, latent_dim: int, loss_recon: nn.BCELoss | nn.MSELoss, l_proj: float, l_ent: float, seed: int):
+    def __init__(
+        self,
+        dataset: str,
+        projection: str,
+        io_dim: int,
+        latent_dim: int,
+        loss_recon: nn.BCELoss | nn.MSELoss,
+        l_proj: float,
+        l_ent: float,
+        seed: int,
+    ):
         super().__init__(dataset, projection, io_dim, latent_dim, l_proj, l_ent, seed)
-        self.loss_func = lambda recon_x, x, mu, logvar, mu_target: loss_gaussian_diagonal(recon_x, x, mu, logvar, mu_target, l_proj, l_ent, loss_recon=loss_recon)
+        self.loss_func = lambda recon_x, x, mu, logvar, mu_target: loss_gaussian_diagonal(
+            recon_x, x, mu, logvar, mu_target, l_proj, l_ent, loss_recon=loss_recon
+        )
         self.encoder = EncoderDiagonalGaussian(self.io_dim, latent_dim)
 
     def forward(self, x):
@@ -148,9 +174,21 @@ class VaeGaussianDiagonal(AeBase):
 
 
 class VaeGaussianIsotropic(AeBase):
-    def __init__(self, dataset: str, projection: str, io_dim: int, latent_dim: int, loss_recon: nn.BCELoss | nn.MSELoss, l_proj: float, l_ent: float, seed: int):
+    def __init__(
+        self,
+        dataset: str,
+        projection: str,
+        io_dim: int,
+        latent_dim: int,
+        loss_recon: nn.BCELoss | nn.MSELoss,
+        l_proj: float,
+        l_ent: float,
+        seed: int,
+    ):
         super().__init__(dataset, projection, io_dim, latent_dim, l_proj, l_ent, seed)
-        self.loss_func = lambda recon_x, x, mu, logvar, mu_target: loss_gaussian_diagonal(recon_x, x, mu, logvar, mu_target, l_proj, l_ent, loss_recon=loss_recon)
+        self.loss_func = lambda recon_x, x, mu, logvar, mu_target: loss_gaussian_diagonal(
+            recon_x, x, mu, logvar, mu_target, l_proj, l_ent, loss_recon=loss_recon
+        )
         self.encoder = EncoderGaussianIsotropic(self.io_dim, latent_dim)
 
     def forward(self, x):
@@ -161,16 +199,28 @@ class VaeGaussianIsotropic(AeBase):
 
 
 class AeRegMean(AeBase):
-    def __init__(self, dataset: str, projection: str, io_dim: int, latent_dim: int, loss_recon: nn.BCELoss | nn.MSELoss, l_proj: float, l_ent: float, seed: int):
+    def __init__(
+        self,
+        dataset: str,
+        projection: str,
+        io_dim: int,
+        latent_dim: int,
+        loss_recon: nn.BCELoss | nn.MSELoss,
+        l_proj: float,
+        l_ent: float,
+        seed: int,
+    ):
         super().__init__(dataset, projection, io_dim, latent_dim, l_proj, l_ent, seed)
-        self.loss_func = lambda recon_x, x, mu, _, mu_target: loss_reg_mean(recon_x, x, mu, mu_target, l_proj, loss_recon=loss_recon)
+        self.loss_func = lambda recon_x, x, mu, _, mu_target: loss_reg_mean(
+            recon_x, x, mu, mu_target, l_proj, loss_recon=loss_recon
+        )
         self.encoder = EncoderBase(self.io_dim, latent_dim)
 
     def forward(self, x):
         x = self.encoder.forward_common(x)
         y = self.encoder.fc4_mu(x)
         recon = self.decoder(y)
-        return recon, y, torch.full((x.size(0), 1), -float('inf'))
+        return recon, y, torch.full((x.size(0), 1), -float("inf"))
 
 
 def save(model, dir_path="models", verbose: bool = False):
@@ -187,15 +237,15 @@ def save(model, dir_path="models", verbose: bool = False):
 
 
 def create_model_from_params(model_type: str, dataset: str, projection: str, l_proj: float, l_ent: float, seed: int):
-    io_dim = 28*28
+    io_dim = 28 * 28
     if dataset == "har":
         io_dim = 561
     elif "_" in dataset:
         io_dim = int(dataset.split("_")[1])
-    
-    loss_recon = nn.MSELoss(reduction='sum')
+
+    loss_recon = nn.MSELoss(reduction="sum")
     if dataset == "mnist" or dataset == "fmnist" or dataset == "kmnist":
-        loss_recon = nn.BCELoss(reduction='sum')
+        loss_recon = nn.BCELoss(reduction="sum")
 
     if model_type == "vae-full":
         model = VaeGaussianFull(dataset, projection, io_dim, 2, loss_recon, l_proj, l_ent, seed)
@@ -212,7 +262,10 @@ def create_model_from_params(model_type: str, dataset: str, projection: str, l_p
 
 def load(filepath):
     filename = os.path.basename(filepath)
-    match = re.match(r"(vae-full|vae-diag|vae-isot|ae-regm)-(mnist|fmnist|kmnist|har|[a-z]+_\d+)-(umap|tsne|lle|mds|pca|isomap)-p([\d.]+)-e([\d.]+)-s(\d+)\.pt", filename)
+    match = re.match(
+        r"(vae-full|vae-diag|vae-isot|ae-regm)-(mnist|fmnist|kmnist|har|[a-z]+_\d+)-(umap|tsne|lle|mds|pca|isomap)-p([\d.]+)-e([\d.]+)-s(\d+)\.pt",
+        filename,
+    )
     if not match:
         raise ValueError("Filename format is invalid")
     model_type, dataset, projection, l_proj, l_ent, seed = match.groups()

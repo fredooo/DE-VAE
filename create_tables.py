@@ -2,54 +2,48 @@ import argparse
 import glob
 import math
 import os
-import pandas as pd
 import re
+
+import pandas as pd
 from tabulate import tabulate
 
 PAIRS = [
-	("mnist", "umap"),
-	("mnist", "pca"),
-	("mnist", "tsne"),
-	("fmnist", "umap"),
-	("fmnist", "pca"),
-	("fmnist", "tsne"),
-	("kmnist", "umap"),
-	("kmnist", "pca"),
-	("kmnist", "tsne"),
-	("har", "umap")]
+    ("mnist", "umap"),
+    ("mnist", "pca"),
+    ("mnist", "tsne"),
+    ("fmnist", "umap"),
+    ("fmnist", "pca"),
+    ("fmnist", "tsne"),
+    ("kmnist", "umap"),
+    ("kmnist", "pca"),
+    ("kmnist", "tsne"),
+    ("har", "umap"),
+]
 
 RECORDS_DIR = "./records"  # root folder that holds the *.txt files
 DATASETS = ["mnist", "fmnist", "kmnist", "har"]
 MODELS = ["ae-regm", "vae-isot", "vae-diag", "vae-full"]
-PROJECTIONS = ["umap",  "tsne", "pca", "mds", "isomap", "lle"]
+PROJECTIONS = ["umap", "tsne", "pca", "mds", "isomap", "lle"]
 SEEDS = range(10)
 
 MODEL_NAMES_LATEX = {
     "vae-isot": "VAE \\textbf{Isotropic} Gaussian",
     "vae-diag": "VAE \\textbf{Diagonal} Gaussian",
     "vae-full": "VAE \\textbf{Full} Gaussian",
-    "ae-regm": "AE Mean Reg. (\\textbf{None})"}
+    "ae-regm": "AE Mean Reg. (\\textbf{None})",
+}
 
 MODEL_NAMES_TERMINAL = {
     "vae-isot": "VAE Isotropic Gaussian",
     "vae-diag": "VAE Diagonal Gaussian",
     "vae-full": "VAE Full Gaussian",
-    "ae-regm": "AE Mean Reg. (None)"}
+    "ae-regm": "AE Mean Reg. (None)",
+}
 
-DATASET_NAMES = {
-    "har": "HAR",
-    "mnist": "MNIST",
-    "fmnist": "Fashion-MNIST",
-    "kmnist": "KMNIST"}
+DATASET_NAMES = {"har": "HAR", "mnist": "MNIST", "fmnist": "Fashion-MNIST", "kmnist": "KMNIST"}
 
-PROJECTION_NAMES = {
-    "pca": "PCA",
-    "mds": "MDS",
-    "tsne": "t-SNE",
-    "umap": "UMAP",
-    "isomap": "Isomap",
-    "lle": "LLE"}
-    
+PROJECTION_NAMES = {"pca": "PCA", "mds": "MDS", "tsne": "t-SNE", "umap": "UMAP", "isomap": "Isomap", "lle": "LLE"}
+
 
 num_pattern = r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?|[+-]?inf|nan"
 
@@ -131,7 +125,7 @@ def create_single_table(model, dataset, projection):
         return None
 
     df = pd.DataFrame.from_dict(rows, orient="index")
-    
+
     # add aggregation row
     row = summarise(df)
     df.loc[len(df)] = row
@@ -145,13 +139,16 @@ def create_single_table(model, dataset, projection):
 
 
 def df_to_latex_str(df, model, dataset, projection):
-    df.rename(columns={
-        "TrainingTime": "Training Time (s)",
-        "Recon": "$\\altmathcal{L}_{\\text{recon}}$",
-        "Proj": "$\\altmathcal{L}_{\\text{proj}}$",
-        "Ent": "$\\altmathcal{L}_{\\text{ent}}$"
-    }, inplace=True)
-    
+    df.rename(
+        columns={
+            "TrainingTime": "Training Time (s)",
+            "Recon": "$\\altmathcal{L}_{\\text{recon}}$",
+            "Proj": "$\\altmathcal{L}_{\\text{proj}}$",
+            "Ent": "$\\altmathcal{L}_{\\text{ent}}$",
+        },
+        inplace=True,
+    )
+
     # pretty LaTeX
     latex_table = df.to_latex(
         index=False,
@@ -159,20 +156,18 @@ def df_to_latex_str(df, model, dataset, projection):
         na_rep="---",
         escape=False,
         column_format="cccccc",
-        caption=f"{MODEL_NAMES_LATEX[model]} on {DATASET_NAMES[dataset]} with {PROJECTION_NAMES[projection]}: Test metrics and training time (10 seeds)",
+        caption=(
+            f"{MODEL_NAMES_LATEX[model]} on {DATASET_NAMES[dataset]} with {PROJECTION_NAMES[projection]}: "
+            "Test metrics and training time (10 seeds)"
+        ),
         label=f"tab:{model}-{dataset}-{projection}",
-        position="!h"
+        position="!h",
     )
 
-    latex_table = latex_table.replace(
-        "\\begin{table}[!h]",
-        "\\begin{table}[!h]\n\\centering"
-    ).replace(
-        "\nμ ± σ",
-        "\n\\midrule\n$\\mu \\pm \\sigma$"
-    ).replace(
-        "±",
-        "$\\pm$"
+    latex_table = (
+        latex_table.replace("\\begin{table}[!h]", "\\begin{table}[!h]\n\\centering")
+        .replace("\nμ ± σ", "\n\\midrule\n$\\mu \\pm \\sigma$")
+        .replace("±", "$\\pm$")
     )
 
     return latex_table
@@ -191,17 +186,16 @@ def run_full():
             print(out)
             print("\\clearpage\n")
 
+
 def print_df_on_terminal(df, model, dataset, projection):
     if df is None:
         print("No data available for the given combination.")
         return
-    df.rename(columns={
-        "TrainingTime": "Training Time (s)",
-        "Recon": "L_recon",
-        "Proj": "L_proj",
-        "Ent": "L_ent"
-    }, inplace=True)
-    pretty = tabulate(df, headers='keys', tablefmt='pretty', floatfmt=".3f")
+    df.rename(
+        columns={"TrainingTime": "Training Time (s)", "Recon": "L_recon", "Proj": "L_proj", "Ent": "L_ent"},
+        inplace=True,
+    )
+    pretty = tabulate(df, headers="keys", tablefmt="pretty", floatfmt=".3f")
     print(f"{MODEL_NAMES_TERMINAL[model]} on {DATASET_NAMES[dataset]} with {PROJECTION_NAMES[projection]}:")
     print(pretty)
 
@@ -269,17 +263,20 @@ def create_summary_table():
     )
 
     proj_block = (
-        "\\multicolumn{5}{c}{\\textit{Parametric projection: Average projection loss $\\altmathcal{L}_\\text{proj}$ (lower is better)}} \\\\\n"
+        "\\multicolumn{5}{c}{\\textit{Parametric projection: "
+        "Average projection loss $\\altmathcal{L}_\\text{proj}$ (lower is better)}} \\\\\n"
         "\\hline\n" + "\n".join(proj_rows) + "\n\\hline\n"
     )
 
     recon_block = (
-        "\\multicolumn{5}{c}{\\textit{Inverse Projection: Average reconstruction loss $\\altmathcal{L}_\\text{recon}$ (lower is better)}} \\\\\n"
+        "\\multicolumn{5}{c}{\\textit{Inverse Projection: "
+        "Average reconstruction loss $\\altmathcal{L}_\\text{recon}$ (lower is better)}} \\\\\n"
         "\\hline\n" + "\n".join(recon_rows) + "\n\\hline\n"
     )
 
     epochs_block = (
-        "\\multicolumn{5}{c}{\\textit{Number of training epochs until validation loss convergence (lower is better)}} \\\\\n"
+        "\\multicolumn{5}{c}{\\textit{Number of training epochs until "
+        "validation loss convergence (lower is better)}} \\\\\n"
         "\\hline\n" + "\n".join(epochs_rows) + "\n\\hline\n"
     )
 
@@ -291,12 +288,15 @@ def create_summary_table():
     footer = (
         "\\end{tabular}\n"
         "\\vspace{0.5em}\n"
-        "\\caption{Average losses and standard deviation (after $\\pm$) of the parametric and inverse projections on test data for 10 runs each, as well as, average number of training epochs and running time}\n"
+        "\\caption{Average losses and standard deviation (after $\\pm$) of the parametric and inverse "
+        "projections on test data for 10 runs each, as well as, average number of training epochs "
+        "and running time}\n"
         "\\label{tab:experiment-data}\n"
         "\\end{table}\n"
     )
 
     return header + proj_block + recon_block + epochs_block + time_block + footer
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate and print evaluation tables.")

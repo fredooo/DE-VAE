@@ -1,9 +1,9 @@
-import argparse
 import gc
-import numpy as np
-import pandas as pd
 import random
 import time
+
+import numpy as np
+import pandas as pd
 import torch
 
 from data_loader import create_loaders_for_dataset
@@ -32,7 +32,10 @@ def log_print(model, line):
 
 
 def loss_log_string(loss_name, values):
-    return f"{loss_name} Loss = {values[0]:.2f} (recon: {values[1]:.2f}, proj: {values[2]:.2f}, ent: {values[3]:.2f}, [std: {values[4]:.2f}])"
+    return (
+        f"{loss_name} Loss = {values[0]:.2f} "
+        f"(recon: {values[1]:.2f}, proj: {values[2]:.2f}, ent: {values[3]:.2f}, [std: {values[4]:.2f}])"
+    )
 
 
 def training_step(train_loader, optimizer, model):
@@ -48,7 +51,7 @@ def training_step(train_loader, optimizer, model):
         # Compute avg_std based on covariance parameterization
         if cov_param.dim() == 3:  # Full covariance (Cholesky factor L)
             # Diagonal of Σ = L @ L.T is sum of squared row elements
-            avg_std = torch.sqrt((cov_param ** 2).sum(dim=2)).sum().item()
+            avg_std = torch.sqrt((cov_param**2).sum(dim=2)).sum().item()
         else:  # Diagonal or isotropic
             avg_std = torch.exp(0.5 * cov_param).sum().item()
         losses += torch.tensor([loss.item(), recon.item(), proj.item(), ent.item(), avg_std])
@@ -69,7 +72,7 @@ def validation_step(val_loader, model):
             # Compute avg_std based on covariance parameterization
             if cov_param.dim() == 3:  # Full covariance (Cholesky factor L)
                 # Diagonal of Σ = L @ L.T is sum of squared row elements
-                avg_std = torch.sqrt((cov_param ** 2).sum(dim=2)).sum().item()
+                avg_std = torch.sqrt((cov_param**2).sum(dim=2)).sum().item()
             else:  # Diagonal or isotropic
                 avg_std = torch.exp(0.5 * cov_param).sum().item()
             losses += torch.tensor([loss.item(), recon_loss.item(), proj.item(), ent.item(), avg_std])
@@ -86,7 +89,7 @@ def store_losses(losses_list, filename):
 
 class ValidationSaveStop:
     def __init__(self, patience=5):
-        self.best_val_loss = float('inf')
+        self.best_val_loss = float("inf")
         self.counter = 0
         self.patience = patience
 
@@ -103,7 +106,7 @@ class ValidationSaveStop:
             return ""
 
 
-def train(model_type: str, dataset: str, projection: str, l_proj: float, l_ent: float, seed: int, data_loaders = None):
+def train(model_type: str, dataset: str, projection: str, l_proj: float, l_ent: float, seed: int, data_loaders=None):
     set_seed(seed)
 
     # Load dataset
@@ -199,7 +202,6 @@ def run_full():
                     train(m, d, p, l_proj, l_ent, s)
                     print(f"GC cleared {gc.collect()} objects")
 
-    
     datasets = ["kmnist"]
     projections = ["tsne"]
     l_proj = 20.0

@@ -1,39 +1,40 @@
 import argparse
-from matplotlib.patches import Ellipse
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import numpy as np
-from pathlib import Path
 import torch
+from matplotlib.patches import Ellipse
 
 from data_loader import create_loaders_for_dataset, model_outputs
 from trainer import set_seed
-from vae_models import load, VaeGaussianDiagonal, VaeGaussianFull, VaeGaussianIsotropic
+from vae_models import VaeGaussianDiagonal, VaeGaussianFull, VaeGaussianIsotropic, load
 
 
 def calculate_medoids(points, labels):
     medoid_indices = []
     unique_labels = torch.unique(labels)
-    
+
     # For each label, compute medoid
     for label in unique_labels:
-        label_mask = (labels == label)
+        label_mask = labels == label
         points_of_label = points[label_mask]
-        
+
         # Compute pairwise distance matrix (Euclidean)
         dist_matrix = torch.cdist(points_of_label, points_of_label, p=2)
-        
+
         # Sum distances for each point
         sum_distances = dist_matrix.sum(dim=1)
-        
+
         # Get index of the point with minimal sum distance within the label subset
         medoid_idx_within_label = torch.argmin(sum_distances)
-        
+
         # Get the original index of the medoid in the overall dataset
         original_idx = (label_mask).nonzero(as_tuple=True)[0][medoid_idx_within_label]
-        
+
         # Append the original index to the list
         medoid_indices.append(original_idx.item())
-    
+
     return medoid_indices
 
 
@@ -54,7 +55,7 @@ def plot_projection_from_loader(data_loader, title, filename):
     y = all_points_2d[:, 1]
 
     plt.figure(figsize=(10, 8))
-    scatter = plt.scatter(x, y, c=all_labels, cmap='tab10', s=5, alpha=0.7)
+    scatter = plt.scatter(x, y, c=all_labels, cmap="tab10", s=5, alpha=0.7)
     plt.colorbar(scatter, ticks=range(10), label="Digit Label")
     plt.title(title)
     plt.xlabel("x")
@@ -69,7 +70,7 @@ def plot_projection_from_loader(data_loader, title, filename):
 
 def plot_latent_2d(mu, label, size=5):
     sizes = torch.ones(mu.size(0)) * size
-    plt.scatter(mu[:, 0], mu[:, 1], c=label, s=sizes, cmap='tab10', alpha=0.2)
+    plt.scatter(mu[:, 0], mu[:, 1], c=label, s=sizes, cmap="tab10", alpha=0.2)
 
 
 def draw_ellipses_halo(mu, widths, heights, angles, alpha: float = 1.0, linewidth: float = 2, ax=None):
@@ -82,10 +83,10 @@ def draw_ellipses_halo(mu, widths, heights, angles, alpha: float = 1.0, linewidt
             width=widths[i],
             height=heights[i],
             angle=angles[i],
-            facecolor='none',  # No fill
-            edgecolor='black',  # Black outline
+            facecolor="none",  # No fill
+            edgecolor="black",  # Black outline
             alpha=alpha,
-            linewidth=linewidth
+            linewidth=linewidth,
         )
         ax.add_patch(ellipse)
 
@@ -95,11 +96,11 @@ def draw_ellipses_halo(mu, widths, heights, angles, alpha: float = 1.0, linewidt
             width=2 * widths[i],
             height=2 * heights[i],
             angle=angles[i],
-            facecolor='none',
-            edgecolor='black',
+            facecolor="none",
+            edgecolor="black",
             alpha=alpha,
             linewidth=linewidth,
-            linestyle='dashed'
+            linestyle="dashed",
         )
         ax.add_patch(ellipse_dashed)
 
@@ -108,16 +109,16 @@ def draw_ellipses_halo(mu, widths, heights, angles, alpha: float = 1.0, linewidt
             width=3 * widths[i],
             height=3 * heights[i],
             angle=angles[i],
-            facecolor='none',
-            edgecolor='black',
+            facecolor="none",
+            edgecolor="black",
             alpha=alpha,
             linewidth=linewidth,
-            linestyle='dotted'
+            linestyle="dotted",
         )
         ax.add_patch(ellipse_dotted)
 
         # Draw black center point
-        ax.plot(mu[i][0], mu[i][1], 'ko', markersize=1)
+        ax.plot(mu[i][0], mu[i][1], "ko", markersize=1)
 
 
 def draw_std_ellipses_filled(mu, std, scale=1.0):
@@ -181,11 +182,11 @@ def main(model_path: str):
         std_plot = torch.exp(0.5 * cov_param_plot[:, 0])
         draw_std_ellipses_filled(mu_plot, std_plot, scale=1.0)
 
-    plt.axis('square')
-    
+    plt.axis("square")
+
     ax = plt.gca()
-    ax.axes.xaxis.set_visible(False) # type: ignore
-    ax.axes.yaxis.set_visible(False) # type: ignore
+    ax.axes.xaxis.set_visible(False)  # type: ignore
+    ax.axes.yaxis.set_visible(False)  # type: ignore
 
     plt.tight_layout()
     pdf_path = Path(f"./images/latent/{model.name}.pdf")
@@ -221,8 +222,8 @@ def plot_decoded_umap_grid(ae_model):
     for idx in range(n_points):
         r, c = divmod(idx, grid_size)
         ax = axes[grid_size - 1 - r, c]
-        ax.imshow(decoded[idx], cmap='gray')
-        ax.axis('off')
+        ax.imshow(decoded[idx], cmap="gray")
+        ax.axis("off")
     plt.tight_layout()
 
     png_path = Path(f"./images/grid/{ae_model.name}.png")
@@ -233,13 +234,10 @@ def plot_decoded_umap_grid(ae_model):
 
 if __name__ == "__main__":
     # Set up argument parser
-    parser = argparse.ArgumentParser(description="Load a model from a specified path and show the latent space visualization.")
-    parser.add_argument(
-        "--model", 
-        type=str, 
-        required=True,
-        help="path to the model file."
+    parser = argparse.ArgumentParser(
+        description="Load a model from a specified path and show the latent space visualization."
     )
+    parser.add_argument("--model", type=str, required=True, help="path to the model file.")
 
     # Parse arguments
     args = parser.parse_args()

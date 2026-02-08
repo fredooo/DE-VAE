@@ -1,0 +1,18 @@
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+lint.select = ["E", "F", "W", "I"]  # E,F,W = flake8 style; I = import checks
+lint.ignore = ["E203"]              # common ignores for Black compatibility
+exclude = ["build", "dist", ".venv", "__pycache__", "*.egg-info"]
+lint.fixable = ["ALL"]
+lint.unfixable = []
+
+[tool.black]
+line-length = 120
+target-version = ['py311']
+skip-string-normalization = false
+fast = false
+
+[tool.isort]
+profile = "black"  # makes isort compatible with Black formatting
+line_length = 120

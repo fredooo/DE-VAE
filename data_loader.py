@@ -1,8 +1,9 @@
-import numpy as np
 from pathlib import Path
+
+import numpy as np
 import pandas as pd
 import torch
-from torch.utils.data import DataLoader, Dataset, random_split, Subset
+from torch.utils.data import DataLoader, Dataset, Subset, random_split
 from torchvision import datasets, transforms
 
 
@@ -25,41 +26,45 @@ class ProjectedLabeledDataset(Dataset):
 
 
 def load_mnist():
-    mnist_train = datasets.MNIST(root='./datasets', train=True, download=True, transform=transforms.ToTensor())
-    mnist_test = datasets.MNIST(root='./datasets', train=False, download=True, transform=transform)
-    vectors = torch.cat([mnist_train.data, mnist_test.data], dim=0).float().div(255).view(-1, 28*28)
+    mnist_train = datasets.MNIST(root="./datasets", train=True, download=True, transform=transforms.ToTensor())
+    mnist_test = datasets.MNIST(root="./datasets", train=False, download=True, transform=transforms.ToTensor())
+    vectors = torch.cat([mnist_train.data, mnist_test.data], dim=0).float().div(255).view(-1, 28 * 28)
     labels = torch.cat([mnist_train.targets, mnist_test.targets], dim=0)
     return vectors, labels
 
 
 def load_fashion_mnist():
-    fashion_mnist_train = datasets.FashionMNIST(root='./datasets', train=True, download=True, transform=transforms.ToTensor())
-    fashion_mnist_test = datasets.FashionMNIST(root='./datasets', train=False, download=True, transform=transform)
-    vectors = torch.cat([fashion_mnist_train.data, fashion_mnist_test.data], dim=0).float().div(255).view(-1, 28*28)
+    fashion_mnist_train = datasets.FashionMNIST(
+        root="./datasets", train=True, download=True, transform=transforms.ToTensor()
+    )
+    fashion_mnist_test = datasets.FashionMNIST(
+        root="./datasets", train=False, download=True, transform=transforms.ToTensor()
+    )
+    vectors = torch.cat([fashion_mnist_train.data, fashion_mnist_test.data], dim=0).float().div(255).view(-1, 28 * 28)
     labels = torch.cat([fashion_mnist_train.targets, fashion_mnist_test.targets], dim=0)
     return vectors, labels
 
 
 def load_kmnist():
-    kmnist_train = datasets.KMNIST(root='./datasets', train=True, download=True, transform=transforms.ToTensor())
-    kmnist_test = datasets.KMNIST(root='./datasets', train=False, download=True, transform=transform)
-    vectors = torch.cat([kmnist_train.data, kmnist_test.data], dim=0).float().div(255).view(-1, 28*28)
+    kmnist_train = datasets.KMNIST(root="./datasets", train=True, download=True, transform=transforms.ToTensor())
+    kmnist_test = datasets.KMNIST(root="./datasets", train=False, download=True, transform=transforms.ToTensor())
+    vectors = torch.cat([kmnist_train.data, kmnist_test.data], dim=0).float().div(255).view(-1, 28 * 28)
     labels = torch.cat([kmnist_train.targets, kmnist_test.targets], dim=0)
     return vectors, labels
 
 
 def load_har():
-    train = pd.read_csv('./datasets/HAR/train.csv')
-    test = pd.read_csv('./datasets/HAR/test.csv')
+    train = pd.read_csv("./datasets/HAR/train.csv")
+    test = pd.read_csv("./datasets/HAR/test.csv")
     data = pd.concat([train, test], ignore_index=True)
     labels = data.iloc[:, -1:]
     labels = labels.to_numpy().flatten()
     labels = np.unique(labels, return_inverse=True)[1]
-    data.drop(['subject', 'Activity'], axis=1, inplace=True)
+    data.drop(["subject", "Activity"], axis=1, inplace=True)
     return torch.from_numpy(data.to_numpy()).float().view(-1, 561), torch.from_numpy(labels)
 
 
-def load_user_csv(path: str, label_col = None):
+def load_user_csv(path: str, label_col=None):
     data = pd.read_csv(path)
     if label_col is not None:
         labels = data[label_col]
@@ -68,7 +73,7 @@ def load_user_csv(path: str, label_col = None):
         data.drop(label_col, axis=1, inplace=True)
     else:
         labels = np.zeros(len(data), dtype=np.int64)
-    
+
     num_features = data.shape[1]
     name = Path(path).stem + "_" + str(num_features)
 
@@ -84,8 +89,8 @@ def load_user_csv(path: str, label_col = None):
 
 def load_csv_to_tensors(csv_path):
     df = pd.read_csv(csv_path)
-    points_2d_tensor = torch.tensor(df[['x', 'y']].values, dtype=torch.float32)
-    labels_tensor = torch.tensor(df['label'].values, dtype=torch.long)
+    points_2d_tensor = torch.tensor(df[["x", "y"]].values, dtype=torch.float32)
+    labels_tensor = torch.tensor(df["label"].values, dtype=torch.long)
     return points_2d_tensor, labels_tensor
 
 
@@ -138,12 +143,12 @@ def model_outputs(model, loader):
     cov_param_out = []
 
     with torch.no_grad():
-        for v, p, l in loader:
+        for v, p, lbl in loader:
             x = v.to(device)
             recon, mu, cov_param = model(x)
             vectors.append(v)
             points.append(p)
-            labels.append(l)
+            labels.append(lbl)
             recon_out.append(recon.cpu())
             mu_out.append(mu.cpu())
             cov_param_out.append(cov_param.cpu())
@@ -154,5 +159,5 @@ def model_outputs(model, loader):
         torch.cat(labels, dim=0),
         torch.cat(recon_out, dim=0),
         torch.cat(mu_out, dim=0),
-        torch.cat(cov_param_out, dim=0)
+        torch.cat(cov_param_out, dim=0),
     )
