@@ -10,20 +10,6 @@ from trainer import set_seed
 from vae_models import load, VaeGaussianDiagonal, VaeGaussianFull, VaeGaussianIsotropic
 
 
-def sample_classes(labels, num_points_per_label: int = 3):
-    unique_labels = labels.unique()
-    selected_indices = []
-    for lbl in unique_labels:
-        label_mask = (labels == lbl)
-        idx = (label_mask).nonzero(as_tuple=True)[0]
-        if len(idx) >= num_points_per_label:
-            selected = idx[:num_points_per_label]
-        else:
-            selected = idx
-        selected_indices.append(selected)
-    return torch.cat(selected_indices)
-
-
 def calculate_medoids(points, labels):
     medoid_indices = []
     unique_labels = torch.unique(labels)
@@ -78,7 +64,7 @@ def plot_projection_from_loader(data_loader, title, filename):
     img_path = Path(filename)
     img_path.parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(img_path)
-    #plt.show()
+    plt.close()
 
 
 def plot_latent_2d(mu, label, size=5):
@@ -176,23 +162,23 @@ def main(model_path: str):
 
     _, _, test_loader = create_loaders_for_dataset(model.dataset, model.projection)
 
-    _, points, labels, _, mu_out, logvar_out = model_outputs(model, test_loader)
+    _, points, labels, _, mu_out, cov_param_out = model_outputs(model, test_loader)
 
     indices = calculate_medoids(points, labels)
-    
+
     mu_plot = mu_out[indices]
-    logvar_plot = logvar_out[indices]
+    cov_param_plot = cov_param_out[indices]
 
     plt.figure(figsize=(10, 8))
 
     plot_latent_2d(mu_out, labels)
 
     if isinstance(model, VaeGaussianFull):
-        draw_cov_ellipses_filled(mu_plot, logvar_plot, scale=1.0)
+        draw_cov_ellipses_filled(mu_plot, cov_param_plot, scale=1.0)
     elif isinstance(model, VaeGaussianDiagonal):
-        draw_diag_ellipses_filled(mu_plot, logvar_plot, scale=1.0)
+        draw_diag_ellipses_filled(mu_plot, cov_param_plot, scale=1.0)
     elif isinstance(model, VaeGaussianIsotropic):
-        std_plot = torch.exp(0.5 * logvar_plot[:, 0])
+        std_plot = torch.exp(0.5 * cov_param_plot[:, 0])
         draw_std_ellipses_filled(mu_plot, std_plot, scale=1.0)
 
     plt.axis('square')
@@ -205,7 +191,7 @@ def main(model_path: str):
     pdf_path = Path(f"./images/latent/{model.name}.pdf")
     pdf_path.parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(pdf_path, format="pdf")
-    plt.show()
+    plt.close()
 
     if model.dataset == "mnist" or model.dataset == "fmnist" or model.dataset == "kmnist":
         plot_decoded_umap_grid(model)
@@ -242,7 +228,7 @@ def plot_decoded_umap_grid(ae_model):
     png_path = Path(f"./images/grid/{ae_model.name}.png")
     png_path.parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(png_path)
-    plt.show()
+    plt.close()
 
 
 if __name__ == "__main__":

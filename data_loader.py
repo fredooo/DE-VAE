@@ -25,8 +25,7 @@ class ProjectedLabeledDataset(Dataset):
 
 
 def load_mnist():
-    transform = transforms.ToTensor()
-    mnist_train = datasets.MNIST(root='./datasets', train=True, download=True, transform=transform)
+    mnist_train = datasets.MNIST(root='./datasets', train=True, download=True, transform=transforms.ToTensor())
     mnist_test = datasets.MNIST(root='./datasets', train=False, download=True, transform=transform)
     vectors = torch.cat([mnist_train.data, mnist_test.data], dim=0).float().div(255).view(-1, 28*28)
     labels = torch.cat([mnist_train.targets, mnist_test.targets], dim=0)
@@ -34,8 +33,7 @@ def load_mnist():
 
 
 def load_fashion_mnist():
-    transform = transforms.ToTensor()
-    fashion_mnist_train = datasets.FashionMNIST(root='./datasets', train=True, download=True, transform=transform)
+    fashion_mnist_train = datasets.FashionMNIST(root='./datasets', train=True, download=True, transform=transforms.ToTensor())
     fashion_mnist_test = datasets.FashionMNIST(root='./datasets', train=False, download=True, transform=transform)
     vectors = torch.cat([fashion_mnist_train.data, fashion_mnist_test.data], dim=0).float().div(255).view(-1, 28*28)
     labels = torch.cat([fashion_mnist_train.targets, fashion_mnist_test.targets], dim=0)
@@ -43,11 +41,10 @@ def load_fashion_mnist():
 
 
 def load_kmnist():
-    transform = transforms.ToTensor()
-    fashion_mnist_train = datasets.KMNIST(root='./datasets', train=True, download=True, transform=transform)
-    fashion_mnist_test = datasets.KMNIST(root='./datasets', train=False, download=True, transform=transform)
-    vectors = torch.cat([fashion_mnist_train.data, fashion_mnist_test.data], dim=0).float().div(255).view(-1, 28*28)
-    labels = torch.cat([fashion_mnist_train.targets, fashion_mnist_test.targets], dim=0)
+    kmnist_train = datasets.KMNIST(root='./datasets', train=True, download=True, transform=transforms.ToTensor())
+    kmnist_test = datasets.KMNIST(root='./datasets', train=False, download=True, transform=transform)
+    vectors = torch.cat([kmnist_train.data, kmnist_test.data], dim=0).float().div(255).view(-1, 28*28)
+    labels = torch.cat([kmnist_train.targets, kmnist_test.targets], dim=0)
     return vectors, labels
 
 
@@ -138,18 +135,18 @@ def model_outputs(model, loader):
     points = []
     recon_out = []
     mu_out = []
-    logvar_out = []
+    cov_param_out = []
 
     with torch.no_grad():
         for v, p, l in loader:
             x = v.to(device)
-            recon, mu, logvar = model(x)
+            recon, mu, cov_param = model(x)
             vectors.append(v)
             points.append(p)
             labels.append(l)
             recon_out.append(recon.cpu())
             mu_out.append(mu.cpu())
-            logvar_out.append(logvar.cpu())
+            cov_param_out.append(cov_param.cpu())
 
     return (
         torch.cat(vectors, dim=0),
@@ -157,5 +154,5 @@ def model_outputs(model, loader):
         torch.cat(labels, dim=0),
         torch.cat(recon_out, dim=0),
         torch.cat(mu_out, dim=0),
-        torch.cat(logvar_out, dim=0)
+        torch.cat(cov_param_out, dim=0)
     )

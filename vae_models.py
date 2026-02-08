@@ -114,20 +114,19 @@ class VaeGaussianFull(AeBase):
         super().__init__(dataset, projection, io_dim, latent_dim, l_proj, l_ent, seed)
         self.loss_func = lambda a, b, c, d, e: loss_gaussian_full(a, b, c, d, e, l_proj, l_ent, loss_recon=loss_recon)
         self.encoder = EncoderGaussianFull(self.io_dim, latent_dim)
+        self.register_buffer('tril_idx', torch.tril_indices(latent_dim, latent_dim))
 
-    @staticmethod
-    def construct_L(L_params, latent_dim):
+    def construct_L(self, L_params):
         batch_size = L_params.size(0)
-        L = torch.zeros(batch_size, latent_dim, latent_dim, device=L_params.device)
-        tril_idx = torch.tril_indices(latent_dim, latent_dim)
-        L[:, tril_idx[0], tril_idx[1]] = L_params
-        diag_indices = torch.arange(latent_dim)
+        L = torch.zeros(batch_size, self.latent_dim, self.latent_dim, device=L_params.device)
+        L[:, self.tril_idx[0], self.tril_idx[1]] = L_params
+        diag_indices = torch.arange(self.latent_dim, device=L_params.device)
         L[:, diag_indices, diag_indices] = torch.exp(L[:, diag_indices, diag_indices])
         return L
 
     def forward(self, x):
         mu, L_params = self.encoder(x)
-        L = self.construct_L(L_params, self.latent_dim)
+        L = self.construct_L(L_params)
         eps = torch.randn(mu.size(0), self.latent_dim, 1, device=x.device)
         z = mu.unsqueeze(2) + torch.bmm(L, eps)
         z = z.squeeze(2)
@@ -221,5 +220,5 @@ def load(filepath):
     l_ent = float(l_ent)
     seed = int(seed)
     model = create_model_from_params(model_type, dataset, projection, l_proj, l_ent, seed)
-    model.load_state_dict(torch.load(filepath))
+    model.load_state_dict(torch.load(filepath, weights_only=True))
     return model

@@ -11,7 +11,7 @@
 ## Key Features
 
 * Learns a parametric projection that maps high-dimensional data to a probabilistic latent space, enabling explicit modeling of uncertainty.
-* Represents each data point as a full, diagomal, or isotropic Gaussian distribution.
+* Represents each data point as a full, diagonal, or isotropic Gaussian distribution.
 * Provides an uncertainty-aware visualization of the projection, i.e., latent space, showing confidence around points.
 * Includes an inverse model to reconstruct original data from projected points.
 * Optimizes multiple losses to ensure accurate reconstruction, projection alignment, and interpretable uncertainty.
@@ -19,7 +19,7 @@
 
 ![Overview][1]
 
-In this example, the encoder of a DE-VAE learns a parametric projection $P$ of MNIST, mapping each data point $x_i$ to a full Gaussian $\mathcal{N}(\mu, \Sigma)$, modeling the uncertainty of a UMAP projection. The decoder learns an inverse projection $P^{-1}$, taking $y_k$ and reconstructing a plausible sample $x̂_k$. $P$ enables uncertainty-aware visualization of the latent space. DE-VAEs optimize the losses: $L_{\text{recon}}$, ensuring reconstruction; $L_{\text{proj}}$, aligning $\mu$ with points of the projection; and $L_{\text{ent}}$, maximizing the variance of $\Sigma$. To show learned Gaussian distributions, we depict the 1st, 2nd, and 3rd standard deviations as ellipses around two randomly sampled points per class.
+In this example, the encoder of a DE-VAE learns a parametric projection $P$ of MNIST, mapping each data point $x_i$ to a full Gaussian $\mathcal{N}(\mu, \Sigma)$, modeling the uncertainty of a UMAP projection. The decoder learns an inverse projection $P^{-1}$, taking $y_k$ and reconstructing a plausible sample $x̂_k$. $P$ enables uncertainty-aware visualization of the latent space. DE-VAEs optimize the losses: $L_{\text{recon}}$, ensuring reconstruction; $L_{\text{proj}}$, aligning $\mu$ with points of the projection; and $L_{\text{ent}}$, maximizing the variance of $\Sigma$. To show learned Gaussian distributions, we depict the 1st, 2nd, and 3rd standard deviations as ellipses around medoid points per class.
 
 ## Requirements
 
@@ -77,7 +77,7 @@ python3 visual.py --model ./models/vae-full-fmnist-umap-p20.00-e4.00000-s0.pt
 
 ### 4. Show Quantitative Results
 ```bash
-# usage: create_tables.py [-h] [--model MODEL] [--dataset DATASET] [--projection PROJECTION] [--all-latex]
+# usage: create_tables.py [-h] [--model MODEL] [--dataset DATASET] [--projection PROJECTION] [--all-latex] [--summary-latex]
 #
 # Generate and print evaluation tables.
 #
@@ -88,6 +88,7 @@ python3 visual.py --model ./models/vae-full-fmnist-umap-p20.00-e4.00000-s0.pt
 #  --projection PROJECTION
 #                        projection name key (e.g., 'umap')
 #  --all-latex           Run full evaluation to generate all LaTeX tables
+#  --summary-latex       Generate summary LaTeX table
 
 # Example:
 python3 create_tables.py --model vae-full --dataset mnist --projection umap
@@ -97,16 +98,16 @@ python3 create_tables.py --model vae-full --dataset mnist --projection umap
 
 ```bash
 # usage: main.py [-h] --model MODEL --data DATA [--label LABEL] --projection PROJECTION [--l-proj L_PROJ] [--l-ent L_ENT] [--seed SEED]
-# 
-# Generate and print evaluation tables.
-# 
+#
+# Train DE-VAE models on custom datasets.
+#
 # options:
 #   -h, --help            show this help message and exit
 #   --model MODEL         model name key (e.g., 'vae-full')
 #   --data DATA           high-dimensional data as CSV file
-#   --label LABEL         Column name specifing class labels
+#   --label LABEL         Column name specifying class labels
 #   --projection PROJECTION
-#                         2D projection data as CSV file
+#                         projection method key (e.g., 'umap', 'tsne', 'pca')
 #   --l-proj L_PROJ       projection loss weight
 #   --l-ent L_ENT         entropy loss weight
 #   --seed SEED           random seed for reproducibility
@@ -128,10 +129,10 @@ python3 visual.py --model ./models/vae-diag-blobs_10-umap-p1.00-e0.10000-s777.pt
 | `data_loader.py`    | Loads and preprocesses datasets: MNIST, FashionMNIST, KMNIST, and HAR.                   |
 | `loss_functions.py` | Implements loss functions used during training of VAE/AE models.                         |
 | `main.py`           | Enables training of DE-VAE models for user-defined datasets and parameters.              |
-| `projections.py`    | Projects high-dimensional data to 2D using UMAP, t-SNE, and LLE.                         |
+| `projections.py`    | Projects high-dimensional data to 2D using UMAP, t-SNE, PCA, MDS, Isomap, and LLE.       |
 | `trainer.py`        | Training loop and utilities for training VAE/AE models.                                  |
 | `vae_models.py`     | Defines the architectures for various VAE and AE model variants.                         |
-| `visual.py`         | Visual tools for exploring model outputs and projections.                                |
+| `visual.py`         | Visualizes latent space with uncertainty ellipses showing learned Gaussian distributions.|
 
 ## License
 

@@ -42,10 +42,15 @@ def training_step(train_loader, optimizer, model):
         x = v.to(device)
         y = p.to(device)
         optimizer.zero_grad()
-        recon_x, mu, logvar = model(x)
-        loss, recon, proj, ent = model.loss_func(recon_x, x, mu, logvar, y)
+        recon_x, mu, cov_param = model(x)
+        loss, recon, proj, ent = model.loss_func(recon_x, x, mu, cov_param, y)
         loss.backward()
-        avg_std = torch.exp(0.5 * logvar).sum().item()
+        # Compute avg_std based on covariance parameterization
+        if cov_param.dim() == 3:  # Full covariance (Cholesky factor L)
+            # Diagonal of Σ = L @ L.T is sum of squared row elements
+            avg_std = torch.sqrt((cov_param ** 2).sum(dim=2)).sum().item()
+        else:  # Diagonal or isotropic
+            avg_std = torch.exp(0.5 * cov_param).sum().item()
         losses += torch.tensor([loss.item(), recon.item(), proj.item(), ent.item(), avg_std])
         optimizer.step()
     avg_losses = losses / len(train_loader.dataset)
@@ -59,10 +64,15 @@ def validation_step(val_loader, model):
         for v, p, _ in val_loader:
             x = v.to(device)
             y = p.to(device)
-            recon, mu, logvar = model(x)
-            loss, recon, proj, ent = model.loss_func(recon, x, mu, logvar, y)
-            avg_std = torch.exp(0.5 * logvar).sum().item()
-            losses += torch.tensor([loss.item(), recon.item(), proj.item(), ent.item(), avg_std])
+            recon_x, mu, cov_param = model(x)
+            loss, recon_loss, proj, ent = model.loss_func(recon_x, x, mu, cov_param, y)
+            # Compute avg_std based on covariance parameterization
+            if cov_param.dim() == 3:  # Full covariance (Cholesky factor L)
+                # Diagonal of Σ = L @ L.T is sum of squared row elements
+                avg_std = torch.sqrt((cov_param ** 2).sum(dim=2)).sum().item()
+            else:  # Diagonal or isotropic
+                avg_std = torch.exp(0.5 * cov_param).sum().item()
+            losses += torch.tensor([loss.item(), recon_loss.item(), proj.item(), ent.item(), avg_std])
     avg_loss = losses / len(val_loader.dataset)
     return avg_loss
 

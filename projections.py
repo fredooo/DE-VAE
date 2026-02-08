@@ -88,6 +88,7 @@ def sample_umap_grid_and_inverse(umap_model, output_prefix, grid_size=7, img_sha
     img_path = Path(f"./images/projections/umap/{output_prefix}_umap_inverse.png")
     img_path.parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(img_path)
+    plt.close()
 
 
 def process_har():

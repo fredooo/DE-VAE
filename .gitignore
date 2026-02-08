@@ -1,4 +1,5 @@
-# MNIST, FashionMNIST, KMNIST data
+# CIFAR-10, MNIST, FashionMNIST, KMNIST data
+datasets/cifar-10-batches-py
 datasets/MNIST
 datasets/FashionMNIST
 datasets/KMNIST
@@ -25,7 +26,7 @@ records/*.csv
 *.zip
 
 #
-# GitHub Pyhton template
+# GitHub Python template
 #
 
 # Byte-compiled / optimized / DLL files
@@ -225,11 +226,21 @@ cython_debug/
 .pypirc
 
 # Cursor
-#  Cursor is an AI-powered code editor. `.cursorignore` specifies files/directories to
-#  exclude from AI features like autocomplete and code analysis. Recommended for sensitive data
-#  refer to https://docs.cursor.com/context/ignore-files
+.cursor/
 .cursorignore
 .cursorindexingignore
+
+# Claude
+CLAUDE.md
+.claude/
+.claude.json
+
+# GitHub Copilot
+.copilot/
+copilot.md
+
+# Cursor / AI IDEs
+
 
 # Marimo
 marimo/_static/

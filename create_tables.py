@@ -210,6 +210,13 @@ def create_summary_table():
     # Define the ordering of models for the summary table
     summary_model_order = ["ae-regm", "vae-isot", "vae-diag", "vae-full"]
 
+    # Parse all files once, cache by (model, dataset, projection)
+    cache = {}
+    for dataset, projection in PAIRS:
+        for model in summary_model_order:
+            key = (model, dataset, projection)
+            cache[key] = create_single_table(model, dataset, projection)
+
     # Containers for each block
     proj_rows = []
     recon_rows = []
@@ -224,7 +231,7 @@ def create_summary_table():
         row_time = [start]
 
         for model in summary_model_order:
-            df = create_single_table(model, dataset, projection)
+            df = cache[(model, dataset, projection)]
             if df is None:
                 row_proj.append("---")
                 row_recon.append("---")

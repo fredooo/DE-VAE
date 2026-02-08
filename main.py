@@ -16,12 +16,12 @@ def main(model: str, data_path: str, label_col, projection, l_proj, l_ent, seed:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Generate and print evaluation tables.")
+    parser = argparse.ArgumentParser(description="Train DE-VAE on custom CSV data.")
 
     parser.add_argument("--model", required=True, help="model name key (e.g., 'vae-full')")
     parser.add_argument("--data", required=True, help="high-dimensional data as CSV file")
     parser.add_argument("--label", help="Column name specifing class labels")
-    parser.add_argument("--projection", required=True, help="2D projection data as CSV file")
+    parser.add_argument("--projection", required=True, help="projection method key (e.g., 'umap', 'tsne', 'pca')")
 
     parser.add_argument("--l-proj", type=float, default=1.0, help="projection loss weight")
     parser.add_argument("--l-ent", type=float, default=1.0, help="entropy loss weight")
