@@ -10,9 +10,11 @@ from sklearn.decomposition import PCA
 from sklearn.manifold import MDS, TSNE, Isomap, LocallyLinearEmbedding
 
 from data_loader import create_data_loaders, load_fashion_mnist, load_har, load_kmnist, load_mnist
+from trainer import set_seed
 from visual import plot_projection_from_loader
 
 projection_seed = 777
+set_seed(projection_seed)
 
 
 def project_data(vectors, labels, output_prefix, method: str = "umap"):

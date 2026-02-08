@@ -65,23 +65,35 @@ class EncoderGaussianIsotropic(EncoderBase):
 
 
 class Decoder(nn.Module):
-    def __init__(self, io_dim, latent_dim):
+    def __init__(self, io_dim, latent_dim, activation="sigmoid"):
         super().__init__()
         self.fc1 = nn.Linear(latent_dim, 256)
         self.fc2 = nn.Linear(256, 512)
         self.fc3 = nn.Linear(512, 512)
         self.fc4 = nn.Linear(512, io_dim)
+        self.activation = activation
 
     def forward(self, z):
         z = F.relu(self.fc1(z))
         z = F.relu(self.fc2(z))
         z = F.relu(self.fc3(z))
-        return torch.sigmoid(self.fc4(z))
+        z = self.fc4(z)
+        if self.activation == "sigmoid":
+            z = torch.sigmoid(z)
+        return z
 
 
 class AeBase(nn.Module):
     def __init__(
-        self, dataset: str, projection: str, io_dim: int, latent_dim: int, l_proj: float, l_ent: float, seed: int
+        self,
+        dataset: str,
+        projection: str,
+        io_dim: int,
+        latent_dim: int,
+        l_proj: float,
+        l_ent: float,
+        seed: int,
+        decoder_activation: str = "sigmoid",
     ):
         super().__init__()
         self.dataset = dataset
@@ -91,8 +103,9 @@ class AeBase(nn.Module):
         self.l_proj = l_proj
         self.l_ent = l_ent
         self.seed = seed
+        self.decoder_activation = decoder_activation
         self.name = f"{self.get_model_type()}-{dataset}-{projection}-p{l_proj:.2f}-e{l_ent:.5f}-s{seed}"
-        self.decoder = Decoder(self.io_dim, latent_dim)
+        self.decoder = Decoder(self.io_dim, latent_dim, decoder_activation)
 
     @staticmethod
     def reparameterization(mu, logvar):
@@ -124,8 +137,9 @@ class VaeGaussianFull(AeBase):
         l_proj: float,
         l_ent: float,
         seed: int,
+        decoder_activation: str = "sigmoid",
     ):
-        super().__init__(dataset, projection, io_dim, latent_dim, l_proj, l_ent, seed)
+        super().__init__(dataset, projection, io_dim, latent_dim, l_proj, l_ent, seed, decoder_activation)
         self.loss_func = lambda a, b, c, d, e: loss_gaussian_full(a, b, c, d, e, l_proj, l_ent, loss_recon=loss_recon)
         self.encoder = EncoderGaussianFull(self.io_dim, latent_dim)
         self.register_buffer("tril_idx", torch.tril_indices(latent_dim, latent_dim))
@@ -159,8 +173,9 @@ class VaeGaussianDiagonal(AeBase):
         l_proj: float,
         l_ent: float,
         seed: int,
+        decoder_activation: str = "sigmoid",
     ):
-        super().__init__(dataset, projection, io_dim, latent_dim, l_proj, l_ent, seed)
+        super().__init__(dataset, projection, io_dim, latent_dim, l_proj, l_ent, seed, decoder_activation)
         self.loss_func = lambda recon_x, x, mu, logvar, mu_target: loss_gaussian_diagonal(
             recon_x, x, mu, logvar, mu_target, l_proj, l_ent, loss_recon=loss_recon
         )
@@ -184,8 +199,9 @@ class VaeGaussianIsotropic(AeBase):
         l_proj: float,
         l_ent: float,
         seed: int,
+        decoder_activation: str = "sigmoid",
     ):
-        super().__init__(dataset, projection, io_dim, latent_dim, l_proj, l_ent, seed)
+        super().__init__(dataset, projection, io_dim, latent_dim, l_proj, l_ent, seed, decoder_activation)
         self.loss_func = lambda recon_x, x, mu, logvar, mu_target: loss_gaussian_diagonal(
             recon_x, x, mu, logvar, mu_target, l_proj, l_ent, loss_recon=loss_recon
         )
@@ -209,8 +225,9 @@ class AeRegMean(AeBase):
         l_proj: float,
         l_ent: float,
         seed: int,
+        decoder_activation: str = "sigmoid",
     ):
-        super().__init__(dataset, projection, io_dim, latent_dim, l_proj, l_ent, seed)
+        super().__init__(dataset, projection, io_dim, latent_dim, l_proj, l_ent, seed, decoder_activation)
         self.loss_func = lambda recon_x, x, mu, _, mu_target: loss_reg_mean(
             recon_x, x, mu, mu_target, l_proj, loss_recon=loss_recon
         )
@@ -247,14 +264,18 @@ def create_model_from_params(model_type: str, dataset: str, projection: str, l_p
     if dataset == "mnist" or dataset == "fmnist" or dataset == "kmnist":
         loss_recon = nn.BCELoss(reduction="sum")
 
+    decoder_activation = "sigmoid" if dataset in ["mnist", "fmnist", "kmnist"] else "identity"
+
     if model_type == "vae-full":
-        model = VaeGaussianFull(dataset, projection, io_dim, 2, loss_recon, l_proj, l_ent, seed)
+        model = VaeGaussianFull(dataset, projection, io_dim, 2, loss_recon, l_proj, l_ent, seed, decoder_activation)
     elif model_type == "vae-diag":
-        model = VaeGaussianDiagonal(dataset, projection, io_dim, 2, loss_recon, l_proj, l_ent, seed)
+        model = VaeGaussianDiagonal(dataset, projection, io_dim, 2, loss_recon, l_proj, l_ent, seed, decoder_activation)
     elif model_type == "vae-isot":
-        model = VaeGaussianIsotropic(dataset, projection, io_dim, 2, loss_recon, l_proj, l_ent, seed)
+        model = VaeGaussianIsotropic(
+            dataset, projection, io_dim, 2, loss_recon, l_proj, l_ent, seed, decoder_activation
+        )
     elif model_type == "ae-regm":
-        model = AeRegMean(dataset, projection, io_dim, 2, loss_recon, l_proj, 0.0, seed)
+        model = AeRegMean(dataset, projection, io_dim, 2, loss_recon, l_proj, 0.0, seed, decoder_activation)
     else:
         raise ValueError("Unrecognized model type in filename")
     return model
@@ -263,7 +284,7 @@ def create_model_from_params(model_type: str, dataset: str, projection: str, l_p
 def load(filepath):
     filename = os.path.basename(filepath)
     match = re.match(
-        r"(vae-full|vae-diag|vae-isot|ae-regm)-(mnist|fmnist|kmnist|har|[a-z]+_\d+)-(umap|tsne|lle|mds|pca|isomap)-p([\d.]+)-e([\d.]+)-s(\d+)\.pt",
+        r"(vae-full|vae-diag|vae-isot|ae-regm)-(mnist|fmnist|kmnist|har|[a-zA-Z0-9_-]+_\d+)-(umap|tsne|lle|mds|pca|isomap)-p([\d.]+)-e([\d.]+)-s(\d+)\.pt",
         filename,
     )
     if not match:

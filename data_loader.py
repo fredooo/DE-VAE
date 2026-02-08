@@ -101,8 +101,7 @@ def create_data_loaders(dataset, points_2d, labels, batch_size=64):
     train_size = dataset_size - val_size - test_size
 
     full_indices = Subset(Dataset(), list(range(dataset_size)))
-    train_indices, val_test_indices = random_split(full_indices, [train_size, val_size + test_size])
-    val_indices, test_indices = random_split(val_test_indices, [val_size, test_size])
+    train_indices, val_indices, test_indices = random_split(full_indices, [train_size, val_size, test_size])
 
     train_dataset = ProjectedLabeledDataset(train_indices.indices, dataset, points_2d, labels)
     val_dataset = ProjectedLabeledDataset(val_indices.indices, dataset, points_2d, labels)

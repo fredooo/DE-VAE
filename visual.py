@@ -55,8 +55,16 @@ def plot_projection_from_loader(data_loader, title, filename):
     y = all_points_2d[:, 1]
 
     plt.figure(figsize=(10, 8))
-    scatter = plt.scatter(x, y, c=all_labels, cmap="tab10", s=5, alpha=0.7)
-    plt.colorbar(scatter, ticks=range(10), label="Digit Label")
+    num_classes = len(np.unique(all_labels))
+    if num_classes <= 10:
+        cmap = plt.cm.tab10
+    elif num_classes <= 20:
+        cmap = plt.cm.tab20
+    else:
+        cmap = plt.cm.viridis
+
+    scatter = plt.scatter(x, y, c=all_labels, cmap=cmap, s=5, alpha=0.7)
+    plt.colorbar(scatter, ticks=range(num_classes), label="Class Label")
     plt.title(title)
     plt.xlabel("x")
     plt.ylabel("y")
@@ -194,7 +202,7 @@ def main(model_path: str):
     plt.savefig(pdf_path, format="pdf")
     plt.close()
 
-    if model.dataset == "mnist" or model.dataset == "fmnist" or model.dataset == "kmnist":
+    if model.projection == "umap" and model.dataset in ["mnist", "fmnist", "kmnist"]:
         plot_decoded_umap_grid(model)
 
 
