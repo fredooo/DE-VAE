@@ -294,5 +294,6 @@ def load(filepath):
     l_ent = float(l_ent)
     seed = int(seed)
     model = create_model_from_params(model_type, dataset, projection, l_proj, l_ent, seed)
-    model.load_state_dict(torch.load(filepath, weights_only=True))
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    model.load_state_dict(torch.load(filepath, weights_only=True, map_location=device))
     return model

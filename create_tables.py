@@ -324,3 +324,5 @@ if __name__ == "__main__":
         print("1. All of --model, --dataset, and --projection")
         print("OR")
         print("2. Just --all-latex")
+        print("OR")
+        print("3. Just --summary-latex")
