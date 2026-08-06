@@ -6,7 +6,7 @@
 [![arXiv](https://img.shields.io/badge/paper-arXiv-red)](https://arxiv.org/abs/2508.12145)
 [![OSF Project](https://img.shields.io/badge/OSF-View%20Project-lightgrey)](https://osf.io/zr6xf/)
 
-📄 **Paper:** [Paper](https://frederikdennig.com/publications/Dennig2025DE-VAE)
+📄 **Paper:** [Link](https://frederikdennig.com/publications/Dennig2025DE-VAE)
 
 ## Key Features
 
