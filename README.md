@@ -133,6 +133,14 @@ python3 visual.py --model ./models/vae-diag-blobs_10-umap-p1.00-e0.10000-s777.pt
 | `vae_models.py`     | Defines the architectures for various VAE and AE model variants.                         |
 | `visual.py`         | Visualizes latent space with uncertainty ellipses showing learned Gaussian distributions.|
 
+## Datasets
+
+The HAR (Human Activity Recognition Using Smartphones) dataset is redistributed here under
+CC BY 4.0 from the [UCI Machine Learning Repository](https://archive.ics.uci.edu/dataset/240/human+activity+recognition+using+smartphones).
+
+> Anguita, D., Ghio, A., Oneto, L., Parra, X., & Reyes-Ortiz, J. L. (2013). A Public Domain Dataset for Human Activity Recognition Using
+> Smartphones. *ESANN 2013*, 437–442.
+
 ## License
 
 This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
